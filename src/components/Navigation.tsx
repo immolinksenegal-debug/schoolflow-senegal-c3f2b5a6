@@ -1,43 +1,70 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users, BookOpen, Settings, BarChart3, GraduationCap } from "lucide-react";
+import { 
+  Home, Users, BookOpen, Settings, BarChart3, GraduationCap,
+  FileText, DollarSign, AlertCircle, Receipt, TrendingUp
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 
 const Navigation = () => {
   const location = useLocation();
 
-  const links = [
+  const mainLinks = [
     { to: "/", label: "Accueil", icon: Home },
     { to: "/dashboard", label: "Tableau de bord", icon: BarChart3 },
-    { to: "/students", label: "Élèves", icon: Users },
-    { to: "/classes", label: "Classes", icon: BookOpen },
-    { to: "/settings", label: "Paramètres", icon: Settings },
   ];
 
+  const managementLinks = [
+    { to: "/students", label: "Élèves", icon: Users, description: "Gestion des élèves" },
+    { to: "/classes", label: "Classes", icon: BookOpen, description: "Niveaux et classes" },
+    { to: "/enrollments", label: "Inscriptions", icon: FileText, description: "Inscriptions et réinscriptions" },
+  ];
+
+  const financeLinks = [
+    { to: "/payments", label: "Paiements", icon: DollarSign, description: "Encaissements et suivi" },
+    { to: "/late-payments", label: "Retards", icon: AlertCircle, description: "Retards et relances" },
+    { to: "/certificates", label: "Certificats", icon: Receipt, description: "Documents et attestations" },
+  ];
+
+  const analyticsLinks = [
+    { to: "/reports", label: "Rapports", icon: TrendingUp, description: "Statistiques et analyses" },
+    { to: "/settings", label: "Paramètres", icon: Settings, description: "Configuration" },
+  ];
+
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+    <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary shadow-sm">
               <GraduationCap className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
               <h1 className="text-lg font-bold text-foreground">SchoolLink</h1>
               <p className="text-xs text-muted-foreground">Sénégal</p>
             </div>
-          </div>
+          </Link>
 
-          <div className="hidden md:flex items-center gap-1">
-            {links.map((link) => {
+          <div className="hidden lg:flex items-center gap-1">
+            {mainLinks.map((link) => {
               const Icon = link.icon;
-              const isActive = location.pathname === link.to;
+              const active = isActive(link.to);
               return (
                 <Link
                   key={link.to}
                   to={link.to}
                   className={cn(
                     "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200",
-                    isActive
+                    active
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                   )}
@@ -47,6 +74,112 @@ const Navigation = () => {
                 </Link>
               );
             })}
+
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium">
+                    Gestion
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-2 p-4 md:w-[500px] md:grid-cols-2">
+                      {managementLinks.map((link) => {
+                        const Icon = link.icon;
+                        return (
+                          <li key={link.to}>
+                            <NavigationMenuLink asChild>
+                              <Link
+                                to={link.to}
+                                className={cn(
+                                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                  isActive(link.to) && "bg-accent"
+                                )}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Icon className="h-4 w-4" />
+                                  <div className="text-sm font-medium leading-none">{link.label}</div>
+                                </div>
+                                <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
+                                  {link.description}
+                                </p>
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium">
+                    Finances
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-2 p-4 md:w-[500px] md:grid-cols-2">
+                      {financeLinks.map((link) => {
+                        const Icon = link.icon;
+                        return (
+                          <li key={link.to}>
+                            <NavigationMenuLink asChild>
+                              <Link
+                                to={link.to}
+                                className={cn(
+                                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                  isActive(link.to) && "bg-accent"
+                                )}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Icon className="h-4 w-4" />
+                                  <div className="text-sm font-medium leading-none">{link.label}</div>
+                                </div>
+                                <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
+                                  {link.description}
+                                </p>
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium">
+                    Plus
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-2 p-4">
+                      {analyticsLinks.map((link) => {
+                        const Icon = link.icon;
+                        return (
+                          <li key={link.to}>
+                            <NavigationMenuLink asChild>
+                              <Link
+                                to={link.to}
+                                className={cn(
+                                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                  isActive(link.to) && "bg-accent"
+                                )}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Icon className="h-4 w-4" />
+                                  <div className="text-sm font-medium leading-none">{link.label}</div>
+                                </div>
+                                <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
+                                  {link.description}
+                                </p>
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
           </div>
         </div>
       </div>
