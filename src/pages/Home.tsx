@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, GraduationCap } from "lucide-react";
+import { ArrowRight, CheckCircle2, GraduationCap, School, Users, TrendingUp, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Home = () => {
@@ -12,8 +12,53 @@ const Home = () => {
     "Sécurisé et conforme aux normes",
   ];
 
+  const stats = [
+    { icon: School, value: "500+", label: "Écoles actives" },
+    { icon: Users, value: "50K+", label: "Élèves gérés" },
+    { icon: TrendingUp, value: "99%", label: "Satisfaction" },
+    { icon: Shield, value: "100%", label: "Sécurisé" },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-soft">
+      {/* Modern Banner */}
+      <section className="relative overflow-hidden bg-gradient-primary">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-20"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 py-12 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex-1 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium mb-4">
+                <GraduationCap className="h-4 w-4" />
+                Solution Multi-Établissements
+              </div>
+              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+                Une plateforme pour toutes vos écoles
+              </h2>
+              <p className="text-lg text-white/90 max-w-2xl">
+                SchoolLink permet de gérer plusieurs établissements depuis une seule interface. 
+                Centralisez vos données, optimisez vos processus et gagnez en efficacité.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-6">
+              {stats.map((stat, index) => (
+                <div 
+                  key={index}
+                  className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center border border-white/20 hover:bg-white/20 transition-all duration-300"
+                >
+                  <stat.icon className="h-8 w-8 text-white mx-auto mb-2" />
+                  <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
+                  <div className="text-sm text-white/80">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 md:py-32">
         <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
