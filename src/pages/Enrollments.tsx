@@ -1,10 +1,26 @@
 import { useState } from "react";
-import { UserPlus, RefreshCw, Search, Filter } from "lucide-react";
+import { UserPlus, RefreshCw, Search, Filter, Eye, Check, X, FileText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -13,29 +29,96 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import StatCard from "@/components/StatCard";
 
 const Enrollments = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isNewEnrollmentOpen, setIsNewEnrollmentOpen] = useState(false);
+  const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
+
+  const stats = [
+    { title: "Nouvelles inscriptions", value: "45", icon: UserPlus, description: "Cette année" },
+    { title: "Réinscriptions", value: "312", icon: RefreshCw, description: "Élèves actuels" },
+    { title: "En attente", value: "8", icon: FileText },
+  ];
 
   const newEnrollments = [
-    { id: 1, name: "Ousmane Diallo", class: "Sixième A", date: "20/01/2025", status: "En attente", amount: "150,000 FCFA" },
-    { id: 2, name: "Khady Mbaye", class: "Cinquième B", date: "19/01/2025", status: "Validé", amount: "140,000 FCFA" },
-    { id: 3, name: "Mamadou Sy", class: "Terminale S", date: "18/01/2025", status: "Documents manquants", amount: "180,000 FCFA" },
+    { 
+      id: 1, 
+      name: "Ousmane Diallo", 
+      class: "Sixième A", 
+      date: "20/01/2025", 
+      status: "En attente", 
+      amount: "150,000 FCFA",
+      phone: "77 234 56 78",
+      parent: "M. Diallo",
+      documents: { photo: true, birth: true, transcript: false }
+    },
+    { 
+      id: 2, 
+      name: "Khady Mbaye", 
+      class: "Cinquième B", 
+      date: "19/01/2025", 
+      status: "Validé", 
+      amount: "140,000 FCFA",
+      phone: "76 345 67 89",
+      parent: "Mme Mbaye",
+      documents: { photo: true, birth: true, transcript: true }
+    },
+    { 
+      id: 3, 
+      name: "Mamadou Sy", 
+      class: "Terminale S", 
+      date: "18/01/2025", 
+      status: "Documents manquants", 
+      amount: "180,000 FCFA",
+      phone: "78 456 78 90",
+      parent: "M. Sy",
+      documents: { photo: true, birth: false, transcript: true }
+    },
   ];
 
   const reEnrollments = [
-    { id: 1, name: "Aminata Diop", prevClass: "Première L", newClass: "Terminale L", date: "15/01/2025", status: "Validé" },
-    { id: 2, name: "Moussa Sow", prevClass: "Première S", newClass: "Terminale S", date: "14/01/2025", status: "En attente" },
-    { id: 3, name: "Fatou Ndiaye", prevClass: "Seconde A", newClass: "Première S", date: "13/01/2025", status: "Validé" },
+    { 
+      id: 1, 
+      name: "Aminata Diop", 
+      prevClass: "Première L", 
+      newClass: "Terminale L", 
+      date: "15/01/2025", 
+      status: "Validé",
+      amount: "150,000 FCFA",
+      matricule: "MAT001"
+    },
+    { 
+      id: 2, 
+      name: "Moussa Sow", 
+      prevClass: "Première S", 
+      newClass: "Terminale S", 
+      date: "14/01/2025", 
+      status: "En attente",
+      amount: "150,000 FCFA",
+      matricule: "MAT002"
+    },
+    { 
+      id: 3, 
+      name: "Fatou Ndiaye", 
+      prevClass: "Seconde A", 
+      newClass: "Première S", 
+      date: "13/01/2025", 
+      status: "Validé",
+      amount: "135,000 FCFA",
+      matricule: "MAT003"
+    },
   ];
 
   const getStatusBadge = (status: string) => {
     if (status === "Validé") {
-      return <Badge className="bg-green-50 text-green-700 border-green-200">Validé</Badge>;
+      return <Badge className="bg-green-50 text-green-700 border-green-200">✓ Validé</Badge>;
     } else if (status === "En attente") {
-      return <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">En attente</Badge>;
+      return <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">⏳ En attente</Badge>;
     } else {
-      return <Badge className="bg-red-50 text-red-700 border-red-200">{status}</Badge>;
+      return <Badge className="bg-red-50 text-red-700 border-red-200">⚠ {status}</Badge>;
     }
   };
 
@@ -52,17 +135,26 @@ const Enrollments = () => {
               <RefreshCw className="h-4 w-4" />
               Réinscription groupée
             </Button>
-            <Button className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2">
+            <Button 
+              className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2"
+              onClick={() => setIsNewEnrollmentOpen(true)}
+            >
               <UserPlus className="h-4 w-4" />
               Nouvelle inscription
             </Button>
           </div>
         </div>
 
+        <div className="grid gap-6 md:grid-cols-3">
+          {stats.map((stat) => (
+            <StatCard key={stat.title} {...stat} />
+          ))}
+        </div>
+
         <Tabs defaultValue="new" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="new">Nouvelles inscriptions</TabsTrigger>
-            <TabsTrigger value="re-enrollment">Réinscriptions</TabsTrigger>
+            <TabsTrigger value="new">Nouvelles inscriptions ({newEnrollments.length})</TabsTrigger>
+            <TabsTrigger value="re-enrollment">Réinscriptions ({reEnrollments.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="new" className="space-y-4">
@@ -78,10 +170,17 @@ const Enrollments = () => {
                       className="pl-10"
                     />
                   </div>
-                  <Button variant="outline" className="gap-2">
-                    <Filter className="h-4 w-4" />
-                    Filtrer
-                  </Button>
+                  <Select>
+                    <SelectTrigger className="w-full md:w-[180px]">
+                      <SelectValue placeholder="Statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous</SelectItem>
+                      <SelectItem value="waiting">En attente</SelectItem>
+                      <SelectItem value="validated">Validé</SelectItem>
+                      <SelectItem value="missing">Documents manquants</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardHeader>
               <CardContent>
@@ -90,6 +189,8 @@ const Enrollments = () => {
                     <TableHeader>
                       <TableRow className="bg-muted/50">
                         <TableHead className="font-semibold">Nom de l'élève</TableHead>
+                        <TableHead className="font-semibold">Contact</TableHead>
+                        <TableHead className="font-semibold">Parent/Tuteur</TableHead>
                         <TableHead className="font-semibold">Classe demandée</TableHead>
                         <TableHead className="font-semibold">Date</TableHead>
                         <TableHead className="font-semibold">Montant</TableHead>
@@ -101,14 +202,28 @@ const Enrollments = () => {
                       {newEnrollments.map((enrollment) => (
                         <TableRow key={enrollment.id} className="hover:bg-muted/50 transition-colors">
                           <TableCell className="font-medium">{enrollment.name}</TableCell>
+                          <TableCell className="text-sm">{enrollment.phone}</TableCell>
+                          <TableCell className="text-sm">{enrollment.parent}</TableCell>
                           <TableCell>{enrollment.class}</TableCell>
-                          <TableCell>{enrollment.date}</TableCell>
+                          <TableCell className="text-sm">{enrollment.date}</TableCell>
                           <TableCell className="font-semibold text-primary">{enrollment.amount}</TableCell>
                           <TableCell>{getStatusBadge(enrollment.status)}</TableCell>
                           <TableCell>
-                            <Button size="sm" variant="outline">
-                              Voir détails
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => setSelectedEnrollment(enrollment)}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                Détails
+                              </Button>
+                              {enrollment.status === "En attente" && (
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -132,10 +247,6 @@ const Enrollments = () => {
                       className="pl-10"
                     />
                   </div>
-                  <Button variant="outline" className="gap-2">
-                    <Filter className="h-4 w-4" />
-                    Filtrer
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -143,10 +254,12 @@ const Enrollments = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold">Matricule</TableHead>
                         <TableHead className="font-semibold">Nom de l'élève</TableHead>
                         <TableHead className="font-semibold">Classe actuelle</TableHead>
                         <TableHead className="font-semibold">Nouvelle classe</TableHead>
                         <TableHead className="font-semibold">Date</TableHead>
+                        <TableHead className="font-semibold">Montant</TableHead>
                         <TableHead className="font-semibold">Statut</TableHead>
                         <TableHead className="font-semibold">Actions</TableHead>
                       </TableRow>
@@ -154,15 +267,25 @@ const Enrollments = () => {
                     <TableBody>
                       {reEnrollments.map((enrollment) => (
                         <TableRow key={enrollment.id} className="hover:bg-muted/50 transition-colors">
+                          <TableCell className="font-medium text-primary">{enrollment.matricule}</TableCell>
                           <TableCell className="font-medium">{enrollment.name}</TableCell>
                           <TableCell>{enrollment.prevClass}</TableCell>
-                          <TableCell className="font-semibold text-primary">{enrollment.newClass}</TableCell>
-                          <TableCell>{enrollment.date}</TableCell>
+                          <TableCell className="font-semibold text-accent">{enrollment.newClass}</TableCell>
+                          <TableCell className="text-sm">{enrollment.date}</TableCell>
+                          <TableCell className="font-semibold">{enrollment.amount}</TableCell>
                           <TableCell>{getStatusBadge(enrollment.status)}</TableCell>
                           <TableCell>
-                            <Button size="sm" variant="outline">
-                              Voir détails
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline">
+                                <Eye className="h-3 w-3 mr-1" />
+                                Détails
+                              </Button>
+                              {enrollment.status === "En attente" && (
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -173,6 +296,185 @@ const Enrollments = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Dialog nouvelle inscription */}
+        <Dialog open={isNewEnrollmentOpen} onOpenChange={setIsNewEnrollmentOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Nouvelle inscription</DialogTitle>
+              <DialogDescription>
+                Enregistrez les informations du nouvel élève
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Nom complet *</Label>
+                  <Input placeholder="Ex: Ousmane Diallo" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Date de naissance *</Label>
+                  <Input type="date" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Téléphone</Label>
+                  <Input placeholder="77 123 45 67" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input type="email" placeholder="eleve@email.com" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Adresse</Label>
+                <Input placeholder="Quartier, Ville" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Nom du parent/tuteur *</Label>
+                  <Input placeholder="M. ou Mme..." />
+                </div>
+                <div className="space-y-2">
+                  <Label>Téléphone parent *</Label>
+                  <Input placeholder="77 987 65 43" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Classe demandée *</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sixieme">Sixième</SelectItem>
+                      <SelectItem value="cinquieme">Cinquième</SelectItem>
+                      <SelectItem value="quatrieme">Quatrième</SelectItem>
+                      <SelectItem value="troisieme">Troisième</SelectItem>
+                      <SelectItem value="seconde">Seconde</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Montant d'inscription</Label>
+                  <Input placeholder="150,000 FCFA" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Documents requis</Label>
+                <div className="space-y-2">
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <Upload className="h-4 w-4" />
+                    Photo d'identité
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <Upload className="h-4 w-4" />
+                    Extrait de naissance
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <Upload className="h-4 w-4" />
+                    Relevé de notes
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Notes (optionnel)</Label>
+                <Textarea placeholder="Informations complémentaires..." />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsNewEnrollmentOpen(false)}>
+                Annuler
+              </Button>
+              <Button className="bg-gradient-primary hover:opacity-90">
+                Enregistrer l'inscription
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog détails inscription */}
+        <Dialog open={!!selectedEnrollment} onOpenChange={() => setSelectedEnrollment(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Détails de l'inscription</DialogTitle>
+            </DialogHeader>
+            {selectedEnrollment && (
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Nom complet</p>
+                    <p className="font-semibold text-lg">{selectedEnrollment.name}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Statut</p>
+                    {getStatusBadge(selectedEnrollment.status)}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Téléphone</p>
+                    <p className="font-medium">{selectedEnrollment.phone}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Parent/Tuteur</p>
+                    <p className="font-medium">{selectedEnrollment.parent}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Classe</p>
+                    <p className="font-medium">{selectedEnrollment.class}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Montant</p>
+                    <p className="font-semibold text-primary">{selectedEnrollment.amount}</p>
+                  </div>
+                </div>
+                {selectedEnrollment.documents && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold">Documents fournis</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <span className="text-sm">Photo d'identité</span>
+                        {selectedEnrollment.documents.photo ? (
+                          <Check className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-600" />
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <span className="text-sm">Extrait de naissance</span>
+                        {selectedEnrollment.documents.birth ? (
+                          <Check className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-600" />
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <span className="text-sm">Relevé de notes</span>
+                        {selectedEnrollment.documents.transcript ? (
+                          <Check className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-600" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSelectedEnrollment(null)}>
+                Fermer
+              </Button>
+              {selectedEnrollment?.status === "En attente" && (
+                <Button className="bg-green-600 hover:bg-green-700">
+                  <Check className="h-4 w-4 mr-2" />
+                  Valider l'inscription
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
