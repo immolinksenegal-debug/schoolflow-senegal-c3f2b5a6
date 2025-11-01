@@ -1,14 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { User, Session } from '@supabase/supabase-js';
+import { useEffect, useState } from "react";
+import { User, Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Set up auth state listener
@@ -32,18 +30,16 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
       if (error) throw error;
-
-      toast.success('Connexion réussie !');
-      return { data, error: null };
+      toast.success("Connexion réussie");
+      return { error: null };
     } catch (error: any) {
-      toast.error(error.message || 'Erreur lors de la connexion');
-      return { data: null, error };
+      toast.error(error.message || "Erreur de connexion");
+      return { error };
     }
   };
 
@@ -51,24 +47,22 @@ export const useAuth = () => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
-          }
-        }
+          },
+        },
       });
-
       if (error) throw error;
-
-      toast.success('Inscription réussie !');
-      return { data, error: null };
+      toast.success("Compte créé avec succès");
+      return { error: null };
     } catch (error: any) {
-      toast.error(error.message || "Erreur lors de l'inscription");
-      return { data: null, error };
+      toast.error(error.message || "Erreur lors de la création du compte");
+      return { error };
     }
   };
 
@@ -76,11 +70,9 @@ export const useAuth = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
-      toast.success('Déconnexion réussie');
-      navigate('/auth');
+      toast.success("Déconnexion réussie");
     } catch (error: any) {
-      toast.error(error.message || 'Erreur lors de la déconnexion');
+      toast.error(error.message || "Erreur de déconnexion");
     }
   };
 
