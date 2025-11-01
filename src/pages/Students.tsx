@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, UserPlus, Filter, Download, Eye, Edit, Trash2, MoreHorizontal } from "lucide-react";
+import { Search, UserPlus, Download, Eye, Edit, Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -45,11 +45,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useStudents } from "@/hooks/useStudents";
-import { StudentForm } from "@/components/StudentForm";
-import type { Database } from "@/integrations/supabase/types";
-
-type Student = Database['public']['Tables']['students']['Row'];
+import { useStudents, Student } from "@/hooks/useStudents";
+import { StudentForm } from "@/components/students/StudentForm";
 
 const Students = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,8 +54,8 @@ const Students = () => {
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
   const { students, isLoading, createStudent, updateStudent, deleteStudent } = useStudents();
 
@@ -78,52 +75,46 @@ const Students = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  const getPaymentBadge = (status: string) => {
-    const badges = {
-      up_to_date: { label: "À jour", className: "bg-green-50 text-green-700 border-green-200" },
-      partial: { label: "Partiel", className: "bg-yellow-50 text-yellow-700 border-yellow-200" },
-      late: { label: "En retard", className: "bg-red-50 text-red-700 border-red-200" },
-      pending: { label: "En attente", className: "bg-gray-50 text-gray-700 border-gray-200" },
+  const getPaymentStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      paid: "À jour",
+      partial: "Partiel",
+      pending: "En attente",
+      late: "En retard"
     };
-    const badge = badges[status as keyof typeof badges] || badges.pending;
-    return <Badge variant="outline" className={badge.className}>{badge.label}</Badge>;
+    return labels[status] || status;
   };
 
-  const handleCreateStudent = (data: any) => {
-    createStudent.mutate(
-      {
-        ...data,
-        status: 'active',
-        payment_status: 'pending',
-      },
-      {
-        onSuccess: () => {
-          setIsAddDialogOpen(false);
-        },
-      }
-    );
-  };
-
-  const handleUpdateStudent = (data: any) => {
-    if (!selectedStudent) return;
-    updateStudent.mutate(
-      { id: selectedStudent.id, updates: data },
-      {
-        onSuccess: () => {
-          setIsEditDialogOpen(false);
-          setSelectedStudent(null);
-        },
-      }
-    );
-  };
-
-  const handleDeleteStudent = () => {
-    if (!studentToDelete) return;
-    deleteStudent.mutate(studentToDelete, {
+  const handleCreate = (data: any) => {
+    createStudent.mutate(data, {
       onSuccess: () => {
-        setStudentToDelete(null);
+        setIsAddDialogOpen(false);
       },
     });
+  };
+
+  const handleUpdate = (data: any) => {
+    if (editingStudent) {
+      updateStudent.mutate(
+        { id: editingStudent.id, updates: data },
+        {
+          onSuccess: () => {
+            setEditingStudent(null);
+          },
+        }
+      );
+    }
+  };
+
+  const handleDelete = () => {
+    if (studentToDelete) {
+      deleteStudent.mutate(studentToDelete.id, {
+        onSuccess: () => {
+          setStudentToDelete(null);
+          setSelectedStudent(null);
+        },
+      });
+    }
   };
 
   return (
@@ -133,8 +124,7 @@ const Students = () => {
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Gestion des élèves</h1>
             <p className="text-muted-foreground">
-              {filteredStudents.length} élève{filteredStudents.length > 1 ? 's' : ''} 
-              {students.length !== filteredStudents.length && ` · ${students.length} au total`}
+              {filteredStudents.length} élève{filteredStudents.length > 1 ? 's' : ''} · {students.length} au total
             </p>
           </div>
           <div className="flex gap-2">
@@ -183,8 +173,9 @@ const Students = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les statuts</SelectItem>
-                  <SelectItem value="up_to_date">À jour</SelectItem>
+                  <SelectItem value="paid">À jour</SelectItem>
                   <SelectItem value="partial">Partiel</SelectItem>
+                  <SelectItem value="pending">En attente</SelectItem>
                   <SelectItem value="late">En retard</SelectItem>
                 </SelectContent>
               </Select>
@@ -195,9 +186,7 @@ const Students = () => {
               <div className="text-center py-8 text-muted-foreground">Chargement...</div>
             ) : filteredStudents.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {searchQuery || classFilter !== "all" || paymentFilter !== "all" 
-                  ? "Aucun élève trouvé avec ces critères" 
-                  : "Aucun élève enregistré. Ajoutez votre premier élève !"}
+                {students.length === 0 ? "Aucun élève enregistré" : "Aucun résultat"}
               </div>
             ) : (
               <div className="rounded-md border border-border overflow-hidden">
@@ -208,7 +197,7 @@ const Students = () => {
                       <TableHead className="font-semibold">Matricule</TableHead>
                       <TableHead className="font-semibold">Classe</TableHead>
                       <TableHead className="font-semibold">Contact</TableHead>
-                      <TableHead className="font-semibold">Parent</TableHead>
+                      <TableHead className="font-semibold">Statut</TableHead>
                       <TableHead className="font-semibold">Paiement</TableHead>
                       <TableHead className="font-semibold text-right">Actions</TableHead>
                     </TableRow>
@@ -223,7 +212,7 @@ const Students = () => {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
-                              <AvatarImage src={student.avatar_url || undefined} />
+                              <AvatarImage src={student.avatar_url} />
                               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                                 {getInitials(student.full_name)}
                               </AvatarFallback>
@@ -236,15 +225,25 @@ const Students = () => {
                         </TableCell>
                         <TableCell className="font-medium text-primary">{student.matricule}</TableCell>
                         <TableCell>{student.class}</TableCell>
-                        <TableCell className="text-sm">{student.phone || '-'}</TableCell>
+                        <TableCell className="text-sm">{student.phone}</TableCell>
                         <TableCell>
-                          <div className="text-sm">
-                            <p className="font-medium">{student.parent_name}</p>
-                            <p className="text-muted-foreground">{student.parent_phone}</p>
-                          </div>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            {student.status === 'active' ? 'Actif' : 'Inactif'}
+                          </Badge>
                         </TableCell>
                         <TableCell>
-                          {getPaymentBadge(student.payment_status)}
+                          <Badge
+                            variant="outline"
+                            className={
+                              student.payment_status === "paid"
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : student.payment_status === "partial"
+                                ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                                : "bg-red-50 text-red-700 border-red-200"
+                            }
+                          >
+                            {getPaymentStatusLabel(student.payment_status)}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -260,20 +259,13 @@ const Students = () => {
                                 <Eye className="mr-2 h-4 w-4" />
                                 Voir le profil
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedStudent(student);
-                                setIsEditDialogOpen(true);
-                              }}>
+                              <DropdownMenuItem onClick={() => setEditingStudent(student)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Modifier
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-red-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setStudentToDelete(student.id);
-                                }}
+                                onClick={() => setStudentToDelete(student)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Supprimer
@@ -300,38 +292,35 @@ const Students = () => {
               </DialogDescription>
             </DialogHeader>
             <StudentForm 
-              onSubmit={handleCreateStudent}
+              onSubmit={handleCreate} 
               isLoading={createStudent.isPending}
             />
           </DialogContent>
         </Dialog>
 
         {/* Dialog pour modifier un élève */}
-        <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-          setIsEditDialogOpen(open);
-          if (!open) setSelectedStudent(null);
-        }}>
+        <Dialog open={!!editingStudent} onOpenChange={() => setEditingStudent(null)}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Modifier l'élève</DialogTitle>
               <DialogDescription>
-                Mettez à jour les informations de l'élève
+                Modifiez les informations de l'élève
               </DialogDescription>
             </DialogHeader>
-            {selectedStudent && (
+            {editingStudent && (
               <StudentForm 
-                onSubmit={handleUpdateStudent}
+                onSubmit={handleUpdate}
                 defaultValues={{
-                  matricule: selectedStudent.matricule,
-                  full_name: selectedStudent.full_name,
-                  date_of_birth: selectedStudent.date_of_birth,
-                  class: selectedStudent.class,
-                  phone: selectedStudent.phone || "",
-                  email: selectedStudent.email || "",
-                  address: selectedStudent.address || "",
-                  parent_name: selectedStudent.parent_name,
-                  parent_phone: selectedStudent.parent_phone,
-                  parent_email: selectedStudent.parent_email || "",
+                  matricule: editingStudent.matricule,
+                  full_name: editingStudent.full_name,
+                  date_of_birth: editingStudent.date_of_birth,
+                  class: editingStudent.class,
+                  phone: editingStudent.phone || "",
+                  email: editingStudent.email || "",
+                  address: editingStudent.address || "",
+                  parent_name: editingStudent.parent_name,
+                  parent_phone: editingStudent.parent_phone,
+                  parent_email: editingStudent.parent_email || "",
                 }}
                 isLoading={updateStudent.isPending}
               />
@@ -340,9 +329,7 @@ const Students = () => {
         </Dialog>
 
         {/* Dialog pour voir les détails */}
-        <Dialog open={!!selectedStudent && !isEditDialogOpen} onOpenChange={(open) => {
-          if (!open) setSelectedStudent(null);
-        }}>
+        <Dialog open={!!selectedStudent && !editingStudent} onOpenChange={() => setSelectedStudent(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Profil de l'élève</DialogTitle>
@@ -351,7 +338,7 @@ const Students = () => {
               <div className="space-y-6 py-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={selectedStudent.avatar_url || undefined} />
+                    <AvatarImage src={selectedStudent.avatar_url} />
                     <AvatarFallback className="bg-primary/10 text-primary font-semibold text-2xl">
                       {getInitials(selectedStudent.full_name)}
                     </AvatarFallback>
@@ -368,8 +355,10 @@ const Students = () => {
                     <p className="font-medium">{new Date(selectedStudent.date_of_birth).toLocaleDateString('fr-FR')}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Statut de paiement</p>
-                    {getPaymentBadge(selectedStudent.payment_status)}
+                    <p className="text-sm text-muted-foreground">Statut</p>
+                    <Badge className="bg-green-50 text-green-700 border-green-200">
+                      {selectedStudent.status === 'active' ? 'Actif' : 'Inactif'}
+                    </Badge>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Téléphone</p>
@@ -383,25 +372,32 @@ const Students = () => {
                     <p className="text-sm text-muted-foreground">Adresse</p>
                     <p className="font-medium">{selectedStudent.address || '-'}</p>
                   </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold mb-3">Informations parent/tuteur</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Nom</p>
-                      <p className="font-medium">{selectedStudent.parent_name}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Téléphone</p>
-                      <p className="font-medium">{selectedStudent.parent_phone}</p>
-                    </div>
-                    {selectedStudent.parent_email && (
-                      <div className="space-y-1 col-span-2">
-                        <p className="text-sm text-muted-foreground">Email</p>
-                        <p className="font-medium">{selectedStudent.parent_email}</p>
-                      </div>
-                    )}
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Parent/Tuteur</p>
+                    <p className="font-medium">{selectedStudent.parent_name}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Téléphone parent</p>
+                    <p className="font-medium">{selectedStudent.parent_phone}</p>
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <p className="text-sm text-muted-foreground">Email parent</p>
+                    <p className="font-medium">{selectedStudent.parent_email || '-'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Statut paiement</p>
+                    <Badge
+                      variant="outline"
+                      className={
+                        selectedStudent.payment_status === "paid"
+                          ? "bg-green-50 text-green-700 border-green-200"
+                          : selectedStudent.payment_status === "partial"
+                          ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                          : "bg-red-50 text-red-700 border-red-200"
+                      }
+                    >
+                      {getPaymentStatusLabel(selectedStudent.payment_status)}
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -409,21 +405,19 @@ const Students = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Alert Dialog pour confirmer la suppression */}
-        <AlertDialog open={!!studentToDelete} onOpenChange={(open) => {
-          if (!open) setStudentToDelete(null);
-        }}>
+        {/* Confirmation de suppression */}
+        <AlertDialog open={!!studentToDelete} onOpenChange={() => setStudentToDelete(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
               <AlertDialogDescription>
-                Êtes-vous sûr de vouloir supprimer cet élève ? Cette action est irréversible.
+                Cette action est irréversible. L'élève {studentToDelete?.full_name} sera définitivement supprimé.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Annuler</AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleDeleteStudent}
+                onClick={handleDelete}
                 className="bg-red-600 hover:bg-red-700"
               >
                 Supprimer
