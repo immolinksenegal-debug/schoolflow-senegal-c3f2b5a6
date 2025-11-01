@@ -33,12 +33,7 @@ const Dashboard = () => {
     },
   ];
 
-  const recentPayments = [
-    { student: "Aminata Diop", class: "Terminale S", amount: "150,000 FCFA", status: "Payé", date: "15/01/2025" },
-    { student: "Moussa Sow", class: "Seconde A", amount: "120,000 FCFA", status: "Partiel", date: "14/01/2025" },
-    { student: "Fatou Ndiaye", class: "Première L", amount: "135,000 FCFA", status: "Payé", date: "13/01/2025" },
-    { student: "Ibrahima Fall", class: "Troisième", amount: "100,000 FCFA", status: "En retard", date: "10/01/2025" },
-  ];
+  const recentPayments: any[] = [];
 
   return (
     <div className="min-h-screen bg-background">

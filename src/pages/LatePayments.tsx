@@ -42,68 +42,7 @@ const LatePayments = () => {
     { title: "Relances envoyées", value: "15", icon: Send, description: "Ce mois" },
   ];
 
-  const latePayments = [
-    { 
-      id: 1, 
-      student: "Ibrahima Fall", 
-      matricule: "MAT004",
-      class: "Troisième", 
-      amount: "100,000 FCFA", 
-      dueDate: "10/01/2025", 
-      daysLate: 10, 
-      phone: "77 456 78 90",
-      email: "ibrahima.fall@email.com",
-      parent: "M. Fall",
-      parentPhone: "77 654 32 10",
-      lastReminder: "15/01/2025",
-      reminderCount: 2
-    },
-    { 
-      id: 2, 
-      student: "Khadija Thiam", 
-      matricule: "MAT010",
-      class: "Seconde B", 
-      amount: "120,000 FCFA", 
-      dueDate: "05/01/2025", 
-      daysLate: 15, 
-      phone: "76 234 56 78",
-      email: "khadija.thiam@email.com",
-      parent: "Mme Thiam",
-      parentPhone: "76 876 54 32",
-      lastReminder: "12/01/2025",
-      reminderCount: 3
-    },
-    { 
-      id: 3, 
-      student: "Mamadou Sy", 
-      matricule: "MAT011",
-      class: "Première S", 
-      amount: "135,000 FCFA", 
-      dueDate: "08/01/2025", 
-      daysLate: 12, 
-      phone: "78 345 67 89",
-      email: "mamadou.sy@email.com",
-      parent: "M. Sy",
-      parentPhone: "78 765 43 21",
-      lastReminder: "14/01/2025",
-      reminderCount: 2
-    },
-    { 
-      id: 4, 
-      student: "Coumba Diop", 
-      matricule: "MAT012",
-      class: "Terminale L", 
-      amount: "150,000 FCFA", 
-      dueDate: "03/01/2025", 
-      daysLate: 17, 
-      phone: "77 567 89 01",
-      email: "coumba.diop@email.com",
-      parent: "Mme Diop",
-      parentPhone: "77 210 98 76",
-      lastReminder: "10/01/2025",
-      reminderCount: 4
-    },
-  ];
+  const latePayments: any[] = [];
 
   const getDaysLateBadge = (days: number) => {
     if (days >= 15) {

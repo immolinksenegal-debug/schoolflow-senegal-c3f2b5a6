@@ -40,52 +40,7 @@ const Certificates = () => {
     { title: "Ce mois", value: "23", icon: FileText, trend: { value: 15, isPositive: true } },
   ];
 
-  const certificates = [
-    { 
-      id: 1, 
-      type: "Certificat de scolarité", 
-      student: "Aminata Diop", 
-      matricule: "MAT001",
-      class: "Terminale S", 
-      date: "20/01/2025", 
-      status: "Généré",
-      generatedBy: "Admin Principal",
-      fileName: "cert_scolarite_MAT001_2025.pdf"
-    },
-    { 
-      id: 2, 
-      type: "Attestation d'inscription", 
-      student: "Moussa Sow", 
-      matricule: "MAT002",
-      class: "Seconde A", 
-      date: "19/01/2025", 
-      status: "Généré",
-      generatedBy: "Admin Principal",
-      fileName: "attestation_inscription_MAT002_2025.pdf"
-    },
-    { 
-      id: 3, 
-      type: "Certificat de scolarité", 
-      student: "Fatou Ndiaye", 
-      matricule: "MAT003",
-      class: "Première L", 
-      date: "18/01/2025", 
-      status: "Généré",
-      generatedBy: "Secrétariat",
-      fileName: "cert_scolarite_MAT003_2025.pdf"
-    },
-    { 
-      id: 4, 
-      type: "Relevé de notes", 
-      student: "Ibrahima Fall", 
-      matricule: "MAT004",
-      class: "Troisième", 
-      date: "17/01/2025", 
-      status: "En attente",
-      generatedBy: "-",
-      fileName: "-"
-    },
-  ];
+  const certificates: any[] = [];
 
   const documentTypes = [
     { 

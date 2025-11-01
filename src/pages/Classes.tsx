@@ -5,18 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const Classes = () => {
-  const classes = [
-    { id: 1, level: "Terminale", name: "Terminale S1", students: 42, teacher: "M. Diop", capacity: 45 },
-    { id: 2, level: "Terminale", name: "Terminale S2", students: 38, teacher: "Mme Ndiaye", capacity: 45 },
-    { id: 3, level: "Terminale", name: "Terminale L", students: 35, teacher: "M. Fall", capacity: 40 },
-    { id: 4, level: "Première", name: "Première S1", students: 44, teacher: "Mme Sarr", capacity: 45 },
-    { id: 5, level: "Première", name: "Première S2", students: 41, teacher: "M. Sow", capacity: 45 },
-    { id: 6, level: "Première", name: "Première L", students: 33, teacher: "Mme Ba", capacity: 40 },
-    { id: 7, level: "Seconde", name: "Seconde A", students: 45, teacher: "M. Gueye", capacity: 45 },
-    { id: 8, level: "Seconde", name: "Seconde B", students: 43, teacher: "Mme Dieng", capacity: 45 },
-    { id: 9, level: "Troisième", name: "Troisième A", students: 40, teacher: "M. Kane", capacity: 42 },
-    { id: 10, level: "Quatrième", name: "Quatrième A", students: 38, teacher: "Mme Cissé", capacity: 42 },
-  ];
+  const classes: any[] = [];
 
   const levels = ["Terminale", "Première", "Seconde", "Troisième", "Quatrième"];
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);

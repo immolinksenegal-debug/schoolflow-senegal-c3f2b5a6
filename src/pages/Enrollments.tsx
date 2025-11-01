@@ -43,74 +43,9 @@ const Enrollments = () => {
     { title: "En attente", value: "8", icon: FileText },
   ];
 
-  const newEnrollments = [
-    { 
-      id: 1, 
-      name: "Ousmane Diallo", 
-      class: "Sixième A", 
-      date: "20/01/2025", 
-      status: "En attente", 
-      amount: "150,000 FCFA",
-      phone: "77 234 56 78",
-      parent: "M. Diallo",
-      documents: { photo: true, birth: true, transcript: false }
-    },
-    { 
-      id: 2, 
-      name: "Khady Mbaye", 
-      class: "Cinquième B", 
-      date: "19/01/2025", 
-      status: "Validé", 
-      amount: "140,000 FCFA",
-      phone: "76 345 67 89",
-      parent: "Mme Mbaye",
-      documents: { photo: true, birth: true, transcript: true }
-    },
-    { 
-      id: 3, 
-      name: "Mamadou Sy", 
-      class: "Terminale S", 
-      date: "18/01/2025", 
-      status: "Documents manquants", 
-      amount: "180,000 FCFA",
-      phone: "78 456 78 90",
-      parent: "M. Sy",
-      documents: { photo: true, birth: false, transcript: true }
-    },
-  ];
+  const newEnrollments: any[] = [];
 
-  const reEnrollments = [
-    { 
-      id: 1, 
-      name: "Aminata Diop", 
-      prevClass: "Première L", 
-      newClass: "Terminale L", 
-      date: "15/01/2025", 
-      status: "Validé",
-      amount: "150,000 FCFA",
-      matricule: "MAT001"
-    },
-    { 
-      id: 2, 
-      name: "Moussa Sow", 
-      prevClass: "Première S", 
-      newClass: "Terminale S", 
-      date: "14/01/2025", 
-      status: "En attente",
-      amount: "150,000 FCFA",
-      matricule: "MAT002"
-    },
-    { 
-      id: 3, 
-      name: "Fatou Ndiaye", 
-      prevClass: "Seconde A", 
-      newClass: "Première S", 
-      date: "13/01/2025", 
-      status: "Validé",
-      amount: "135,000 FCFA",
-      matricule: "MAT003"
-    },
-  ];
+  const reEnrollments: any[] = [];
 
   const getStatusBadge = (status: string) => {
     if (status === "Validé") {

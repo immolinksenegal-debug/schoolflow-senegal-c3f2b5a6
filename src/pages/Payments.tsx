@@ -42,60 +42,7 @@ const Payments = () => {
     { title: "Montant en attente", value: "3.2M FCFA", icon: DollarSign },
   ];
 
-  const payments = [
-    { 
-      id: "REC001", 
-      student: "Aminata Diop", 
-      matricule: "MAT001",
-      class: "Terminale S", 
-      amount: "150,000 FCFA", 
-      type: "Mensuel", 
-      date: "20/01/2025", 
-      method: "Espèces", 
-      status: "Payé",
-      period: "Janvier 2025",
-      remainingBalance: "0 FCFA"
-    },
-    { 
-      id: "REC002", 
-      student: "Moussa Sow", 
-      matricule: "MAT002",
-      class: "Seconde A", 
-      amount: "60,000 FCFA", 
-      type: "Mensuel", 
-      date: "19/01/2025", 
-      method: "Mobile Money", 
-      status: "Partiel",
-      period: "Janvier 2025",
-      remainingBalance: "60,000 FCFA"
-    },
-    { 
-      id: "REC003", 
-      student: "Fatou Ndiaye", 
-      matricule: "MAT003",
-      class: "Première L", 
-      amount: "135,000 FCFA", 
-      type: "Trimestriel", 
-      date: "18/01/2025", 
-      method: "Virement", 
-      status: "Payé",
-      period: "Trimestre 2",
-      remainingBalance: "0 FCFA"
-    },
-    { 
-      id: "REC004", 
-      student: "Ibrahima Fall", 
-      matricule: "MAT004",
-      class: "Troisième", 
-      amount: "50,000 FCFA", 
-      type: "Mensuel", 
-      date: "17/01/2025", 
-      method: "Espèces", 
-      status: "Partiel",
-      period: "Janvier 2025",
-      remainingBalance: "50,000 FCFA"
-    },
-  ];
+  const payments: any[] = [];
 
   const filteredPayments = payments.filter((payment) => {
     const matchesSearch = 
