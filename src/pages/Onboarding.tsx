@@ -86,39 +86,21 @@ const Onboarding = () => {
         logoUrl = publicUrl;
       }
 
-      // Create school
-      const { data: school, error: schoolError } = await supabase
-        .from("schools")
-        .insert({
-          name: data.name,
-          address: data.address || null,
-          phone: data.phone || null,
-          email: data.email || null,
-          logo_url: logoUrl || null,
-        })
-        .select()
-        .single();
+      // Call edge function to create school (bypasses RLS)
+      const { data: result, error: functionError } = await supabase.functions.invoke(
+        'create-school',
+        {
+          body: {
+            name: data.name,
+            address: data.address || null,
+            phone: data.phone || null,
+            email: data.email || null,
+            logo_url: logoUrl || null,
+          }
+        }
+      );
 
-      if (schoolError) throw schoolError;
-
-      // Update profile with school_id
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ school_id: school.id })
-        .eq("user_id", user.id);
-
-      if (profileError) throw profileError;
-
-      // Add school_admin role
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: user.id,
-          role: "school_admin",
-          school_id: school.id,
-        });
-
-      if (roleError) throw roleError;
+      if (functionError) throw functionError;
 
       toast.success("École créée avec succès");
       navigate("/dashboard");
