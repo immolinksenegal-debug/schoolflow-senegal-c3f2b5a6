@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Search, UserPlus, Download, Eye, Edit, Trash2, MoreHorizontal } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Search, UserPlus, Download, Eye, Edit, Trash2, MoreHorizontal, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -47,10 +48,14 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useStudents, Student } from "@/hooks/useStudents";
 import { StudentForm } from "@/components/students/StudentForm";
+import { useSchool } from "@/hooks/useSchool";
 
 const Students = () => {
+  const [searchParams] = useSearchParams();
+  const classParam = searchParams.get("class");
+  
   const [searchQuery, setSearchQuery] = useState("");
-  const [classFilter, setClassFilter] = useState("all");
+  const [classFilter, setClassFilter] = useState(classParam || "all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -58,6 +63,13 @@ const Students = () => {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
   const { students, isLoading, createStudent, updateStudent, deleteStudent } = useStudents();
+  const { school } = useSchool();
+
+  useEffect(() => {
+    if (classParam) {
+      setClassFilter(classParam);
+    }
+  }, [classParam]);
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch = 
@@ -117,32 +129,135 @@ const Students = () => {
     }
   };
 
+  const handlePrintList = () => {
+    window.print();
+  };
+
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Gestion des élèves</h1>
-            <p className="text-muted-foreground">
-              {filteredStudents.length} élève{filteredStudents.length > 1 ? 's' : ''} · {students.length} au total
-            </p>
+    <>
+      <style>
+        {`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            .print-area, .print-area * {
+              visibility: visible;
+            }
+            .print-area {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+            .no-print {
+              display: none !important;
+            }
+            @page {
+              margin: 1cm;
+            }
+          }
+        `}
+      </style>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 no-print">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Gestion des élèves</h1>
+              <p className="text-muted-foreground">
+                {filteredStudents.length} élève{filteredStudents.length > 1 ? 's' : ''} · {students.length} au total
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {classFilter !== "all" && (
+                <Button 
+                  variant="outline" 
+                  className="gap-2"
+                  onClick={handlePrintList}
+                >
+                  <Printer className="h-4 w-4" />
+                  Imprimer la liste
+                </Button>
+              )}
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                Exporter
+              </Button>
+              <Button 
+                className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2"
+                onClick={() => setIsAddDialogOpen(true)}
+              >
+                <UserPlus className="h-4 w-4" />
+                Nouvel élève
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
-              <Download className="h-4 w-4" />
-              Exporter
-            </Button>
-            <Button 
-              className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2"
-              onClick={() => setIsAddDialogOpen(true)}
-            >
-              <UserPlus className="h-4 w-4" />
-              Nouvel élève
-            </Button>
+
+
+        {/* Print Header - Only visible when printing */}
+        <div className="print-area hidden print:block mb-8">
+          <div className="text-center mb-6 pb-4 border-b-2">
+            {school?.logo_url && (
+              <img 
+                src={school.logo_url} 
+                alt="Logo" 
+                className="h-16 mx-auto mb-4 object-contain"
+              />
+            )}
+            <h1 className="text-2xl font-bold mb-2">{school?.name}</h1>
+            {school?.address && <p className="text-sm">{school.address}</p>}
+            <div className="flex justify-center gap-4 text-sm mt-1">
+              {school?.phone && <span>Tél: {school.phone}</span>}
+              {school?.email && <span>Email: {school.email}</span>}
+            </div>
+          </div>
+          <h2 className="text-xl font-bold text-center mb-4">
+            LISTE DES ÉLÈVES - {classFilter !== "all" ? classFilter : "TOUTES LES CLASSES"}
+          </h2>
+          <p className="text-center text-sm mb-6">
+            Date d'impression: {new Date().toLocaleDateString('fr-FR')} | Total: {filteredStudents.length} élève{filteredStudents.length > 1 ? 's' : ''}
+          </p>
+          
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b-2 border-black">
+                <th className="text-left py-2 px-2">N°</th>
+                <th className="text-left py-2 px-2">Matricule</th>
+                <th className="text-left py-2 px-2">Nom complet</th>
+                <th className="text-left py-2 px-2">Classe</th>
+                <th className="text-left py-2 px-2">Contact</th>
+                <th className="text-left py-2 px-2">Parent/Tuteur</th>
+                <th className="text-left py-2 px-2">Statut paiement</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStudents.map((student, index) => (
+                <tr key={student.id} className="border-b">
+                  <td className="py-2 px-2">{index + 1}</td>
+                  <td className="py-2 px-2 font-mono text-sm">{student.matricule}</td>
+                  <td className="py-2 px-2 font-medium">{student.full_name}</td>
+                  <td className="py-2 px-2">{student.class}</td>
+                  <td className="py-2 px-2 text-sm">{student.phone || '-'}</td>
+                  <td className="py-2 px-2 text-sm">{student.parent_name}</td>
+                  <td className="py-2 px-2 text-sm">{getPaymentStatusLabel(student.payment_status)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          <div className="mt-8 pt-4 border-t flex justify-between text-sm">
+            <div>
+              <p>Signature du responsable:</p>
+              <div className="mt-8 border-t border-black w-48"></div>
+            </div>
+            <div className="text-right">
+              <p>Cachet de l'établissement</p>
+            </div>
           </div>
         </div>
 
-        <Card className="shadow-card">
+        <Card className="shadow-card no-print">
           <CardHeader>
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-1">
@@ -425,8 +540,9 @@ const Students = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
