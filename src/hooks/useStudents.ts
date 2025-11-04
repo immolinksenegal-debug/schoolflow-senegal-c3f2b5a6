@@ -74,6 +74,46 @@ export const useStudents = () => {
         throw new Error("Aucune école associée");
       }
 
+      // Check for duplicate email
+      if (studentData.email && studentData.email !== '') {
+        const { data: existingEmail } = await supabase
+          .from("students")
+          .select("id, full_name")
+          .eq("school_id", profile.school_id)
+          .eq("email", studentData.email)
+          .maybeSingle();
+
+        if (existingEmail) {
+          throw new Error(`L'email ${studentData.email} est déjà utilisé par ${existingEmail.full_name}`);
+        }
+      }
+
+      // Check for duplicate phone
+      if (studentData.phone && studentData.phone !== '') {
+        const { data: existingPhone } = await supabase
+          .from("students")
+          .select("id, full_name")
+          .eq("school_id", profile.school_id)
+          .eq("phone", studentData.phone)
+          .maybeSingle();
+
+        if (existingPhone) {
+          throw new Error(`Le téléphone ${studentData.phone} est déjà utilisé par ${existingPhone.full_name}`);
+        }
+      }
+
+      // Check for duplicate parent phone
+      const { data: existingParentPhone } = await supabase
+        .from("students")
+        .select("id, full_name")
+        .eq("school_id", profile.school_id)
+        .eq("parent_phone", studentData.parent_phone)
+        .maybeSingle();
+
+      if (existingParentPhone) {
+        throw new Error(`Le téléphone du parent ${studentData.parent_phone} est déjà utilisé par ${existingParentPhone.full_name}`);
+      }
+
       const { data, error } = await supabase
         .from("students")
         .insert([
@@ -87,7 +127,22 @@ export const useStudents = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle unique constraint violations with friendly messages
+        if (error.message.includes('students_email_unique')) {
+          throw new Error(`Cet email est déjà utilisé par un autre élève`);
+        }
+        if (error.message.includes('students_phone_unique')) {
+          throw new Error(`Ce numéro de téléphone est déjà utilisé par un autre élève`);
+        }
+        if (error.message.includes('students_parent_phone_unique')) {
+          throw new Error(`Ce numéro de téléphone du parent est déjà utilisé`);
+        }
+        if (error.message.includes('students_parent_email_unique')) {
+          throw new Error(`Cet email du parent est déjà utilisé`);
+        }
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
@@ -108,7 +163,22 @@ export const useStudents = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle unique constraint violations with friendly messages
+        if (error.message.includes('students_email_unique')) {
+          throw new Error(`Cet email est déjà utilisé par un autre élève`);
+        }
+        if (error.message.includes('students_phone_unique')) {
+          throw new Error(`Ce numéro de téléphone est déjà utilisé par un autre élève`);
+        }
+        if (error.message.includes('students_parent_phone_unique')) {
+          throw new Error(`Ce numéro de téléphone du parent est déjà utilisé`);
+        }
+        if (error.message.includes('students_parent_email_unique')) {
+          throw new Error(`Cet email du parent est déjà utilisé`);
+        }
+        throw error;
+      }
       return updated;
     },
     onSuccess: () => {
