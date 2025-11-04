@@ -1,12 +1,29 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Users, BookOpen, Pencil, Trash2, UserCog, DollarSign } from "lucide-react";
+import { Plus, Users, BookOpen, Pencil, Trash2, UserCog, DollarSign, Search, Grid, Table as TableIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useClasses, CreateClassData, Class } from "@/hooks/useClasses";
 import { ClassForm } from "@/components/classes/ClassForm";
 import { useStudents } from "@/hooks/useStudents";
+import { usePayments } from "@/hooks/usePayments";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,12 +34,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Classes = () => {
   const navigate = useNavigate();
   const { classes, isLoading, createClass, updateClass, deleteClass } = useClasses();
   const { students } = useStudents();
+  const { payments } = usePayments();
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
   const [formOpen, setFormOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<Class | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -30,24 +51,73 @@ const Classes = () => {
 
   const levels = ["Terminale", "Première", "Seconde", "Troisième", "Quatrième", "Cinquième", "Sixième"];
 
-  const filteredClasses = selectedLevel
-    ? classes.filter((c) => c.level === selectedLevel)
-    : classes;
-
   // Calculate student count per class
   const getStudentCount = (className: string) => {
     return students.filter(s => s.class === className).length;
   };
 
-  const levelStats = levels.map((level) => {
-    const levelClasses = classes.filter((c) => c.level === level);
-    const totalStudents = levelClasses.reduce((sum, c) => sum + getStudentCount(c.name), 0);
-    return {
-      level,
-      count: levelClasses.length,
-      students: totalStudents,
-    };
+  // Calculate total payments per class
+  const getClassPayments = (className: string) => {
+    const classStudents = students.filter(s => s.class === className);
+    const studentIds = classStudents.map(s => s.id);
+    return payments
+      .filter(p => studentIds.includes(p.student_id))
+      .reduce((sum, p) => sum + Number(p.amount), 0);
+  };
+
+  // Enhanced class data with statistics
+  const enrichedClasses = useMemo(() => {
+    return classes.map((classItem) => {
+      const studentCount = getStudentCount(classItem.name);
+      const totalPayments = getClassPayments(classItem.name);
+      const occupancyRate = (studentCount / classItem.capacity) * 100;
+      const expectedRevenue = studentCount * (Number(classItem.registration_fee || 0) + Number(classItem.annual_tuition || 0));
+      
+      return {
+        ...classItem,
+        studentCount,
+        totalPayments,
+        occupancyRate,
+        expectedRevenue,
+      };
+    });
+  }, [classes, students, payments]);
+
+  const filteredClasses = enrichedClasses.filter((c) => {
+    const matchesLevel = selectedLevel ? c.level === selectedLevel : true;
+    const matchesSearch = searchQuery
+      ? c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.teacher_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.room_number?.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+    return matchesLevel && matchesSearch;
   });
+
+  const levelStats = useMemo(() => {
+    return levels.map((level) => {
+      const levelClasses = enrichedClasses.filter((c) => c.level === level);
+      const totalStudents = levelClasses.reduce((sum, c) => sum + c.studentCount, 0);
+      const totalRevenue = levelClasses.reduce((sum, c) => sum + c.totalPayments, 0);
+      const totalCapacity = levelClasses.reduce((sum, c) => sum + c.capacity, 0);
+      return {
+        level,
+        count: levelClasses.length,
+        students: totalStudents,
+        revenue: totalRevenue,
+        capacity: totalCapacity,
+      };
+    });
+  }, [enrichedClasses]);
+
+  const totalStats = useMemo(() => {
+    return {
+      totalClasses: classes.length,
+      totalStudents: enrichedClasses.reduce((sum, c) => sum + c.studentCount, 0),
+      totalCapacity: enrichedClasses.reduce((sum, c) => sum + c.capacity, 0),
+      totalRevenue: enrichedClasses.reduce((sum, c) => sum + c.totalPayments, 0),
+      totalExpected: enrichedClasses.reduce((sum, c) => sum + c.expectedRevenue, 0),
+    };
+  }, [enrichedClasses]);
 
   const handleCreateClass = (data: CreateClassData) => {
     createClass.mutate(data, {
@@ -109,10 +179,13 @@ const Classes = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Gestion des classes</h1>
-            <p className="text-muted-foreground">Organisation des niveaux et classes</p>
+            <p className="text-muted-foreground">
+              {totalStats.totalClasses} classes • {totalStats.totalStudents} élèves • {totalStats.totalCapacity} places
+            </p>
           </div>
           <Button
             className="bg-gradient-primary hover:opacity-90 transition-opacity"
@@ -123,164 +196,392 @@ const Classes = () => {
           </Button>
         </div>
 
+        {/* Global Statistics */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="shadow-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Classes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-primary">{totalStats.totalClasses}</div>
+              <p className="text-xs text-muted-foreground mt-1">Sur tous les niveaux</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Élèves inscrits</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{totalStats.totalStudents}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Taux d'occupation: {((totalStats.totalStudents / totalStats.totalCapacity) * 100).toFixed(1)}%
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Revenus collectés</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                {totalStats.totalRevenue.toLocaleString()} F
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Paiements reçus</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Revenus attendus</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">
+                {totalStats.totalExpected.toLocaleString()} F
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Recouvrement: {totalStats.totalExpected > 0 ? ((totalStats.totalRevenue / totalStats.totalExpected) * 100).toFixed(1) : 0}%
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Statistiques par niveau */}
-        <div className="grid gap-4 md:grid-cols-5 lg:grid-cols-7">
+        <div className="grid gap-3 md:grid-cols-4 lg:grid-cols-7">
           {levelStats.map((stat) => (
             <Card
               key={stat.level}
               className={`shadow-card hover:shadow-elegant transition-all duration-300 cursor-pointer ${
-                selectedLevel === stat.level ? "ring-2 ring-primary" : ""
+                selectedLevel === stat.level ? "ring-2 ring-primary bg-accent/5" : ""
               }`}
               onClick={() => setSelectedLevel(selectedLevel === stat.level ? null : stat.level)}
             >
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   {stat.level}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-primary" />
-                    <span className="text-2xl font-bold text-foreground">{stat.count}</span>
-                    <span className="text-sm text-muted-foreground">classes</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-accent" />
-                    <span className="text-lg font-semibold text-foreground">{stat.students}</span>
-                    <span className="text-xs text-muted-foreground">élèves</span>
-                  </div>
+              <CardContent className="space-y-1">
+                <div className="flex items-center gap-1">
+                  <BookOpen className="h-3 w-3 text-primary" />
+                  <span className="text-xl font-bold text-foreground">{stat.count}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users className="h-3 w-3 text-accent" />
+                  <span className="text-sm font-semibold text-foreground">{stat.students}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {stat.revenue.toLocaleString()} F
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Liste des classes */}
+        {/* Filters and Search */}
+        <Card className="shadow-card">
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Rechercher par nom, professeur ou salle..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={selectedLevel || "all"} onValueChange={(value) => setSelectedLevel(value === "all" ? null : value)}>
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Tous les niveaux" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les niveaux</SelectItem>
+                  {levels.map((level) => (
+                    <SelectItem key={level} value={level}>{level}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex gap-2">
+                <Button
+                  variant={viewMode === "table" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setViewMode("table")}
+                >
+                  <TableIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "grid" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setViewMode("grid")}
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Classes List/Table */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="text-foreground">
-              {selectedLevel ? `Classes de ${selectedLevel}` : "Toutes les classes"}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-foreground">
+                  {selectedLevel ? `Classes de ${selectedLevel}` : "Liste des classes"}
+                </CardTitle>
+                <CardDescription>
+                  {filteredClasses.length} classe{filteredClasses.length > 1 ? "s" : ""} trouvée{filteredClasses.length > 1 ? "s" : ""}
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {filteredClasses.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Aucune classe trouvée</p>
+              <div className="text-center py-12">
+                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">
+                  {searchQuery || selectedLevel ? "Aucune classe ne correspond à vos critères" : "Aucune classe créée"}
+                </p>
                 <Button
                   variant="outline"
-                  className="mt-4"
                   onClick={() => setFormOpen(true)}
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Créer la première classe
+                  Créer une classe
                 </Button>
               </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredClasses.map((classItem) => {
-                  const studentCount = getStudentCount(classItem.name);
-                  const occupancyRate = (studentCount / classItem.capacity) * 100;
-                  return (
-                    <Card
-                      key={classItem.id}
-                      className="hover:shadow-elegant transition-shadow duration-300"
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg text-foreground">
-                            {classItem.name}
-                          </CardTitle>
-                          <Badge
-                            variant="outline"
-                            className={
-                              occupancyRate >= 95
-                                ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300"
-                                : occupancyRate >= 85
-                                ? "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300"
-                                : "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300"
-                            }
-                          >
-                            {occupancyRate.toFixed(0)}%
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {classItem.teacher_name && (
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Professeur principal</span>
-                            <span className="font-medium text-foreground">{classItem.teacher_name}</span>
+            ) : viewMode === "table" ? (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Classe</TableHead>
+                      <TableHead>Niveau</TableHead>
+                      <TableHead>Professeur</TableHead>
+                      <TableHead>Salle</TableHead>
+                      <TableHead className="text-center">Effectif</TableHead>
+                      <TableHead className="text-center">Occupation</TableHead>
+                      <TableHead className="text-right">Frais inscription</TableHead>
+                      <TableHead className="text-right">Scolarité annuelle</TableHead>
+                      <TableHead className="text-right">Revenus collectés</TableHead>
+                      <TableHead className="text-center">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredClasses.map((classItem) => (
+                      <TableRow key={classItem.id} className="hover:bg-accent/5">
+                        <TableCell className="font-medium">{classItem.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{classItem.level}</Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {classItem.teacher_name || "-"}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {classItem.room_number || "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center">
+                            <span className="font-medium">{classItem.studentCount}</span>
+                            <span className="text-xs text-muted-foreground">/ {classItem.capacity}</span>
                           </div>
-                        )}
-                        {classItem.room_number && (
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Salle</span>
-                            <span className="font-medium text-foreground">{classItem.room_number}</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Badge
+                              variant="outline"
+                              className={
+                                classItem.occupancyRate >= 95
+                                  ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300"
+                                  : classItem.occupancyRate >= 85
+                                  ? "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300"
+                                  : "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300"
+                              }
+                            >
+                              {classItem.occupancyRate.toFixed(0)}%
+                            </Badge>
+                            <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-500 ${
+                                  classItem.occupancyRate >= 95
+                                    ? "bg-red-500"
+                                    : classItem.occupancyRate >= 85
+                                    ? "bg-yellow-500"
+                                    : "bg-gradient-primary"
+                                }`}
+                                style={{ width: `${Math.min(classItem.occupancyRate, 100)}%` }}
+                              />
+                            </div>
                           </div>
-                        )}
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Effectif</span>
-                          <span className="font-medium text-foreground">
-                            {studentCount} / {classItem.capacity}
-                          </span>
-                        </div>
-                        <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                          <div
-                            className={`h-full transition-all duration-500 ${
-                              occupancyRate >= 95
-                                ? "bg-red-500"
-                                : occupancyRate >= 85
-                                ? "bg-yellow-500"
-                                : "bg-gradient-primary"
-                            }`}
-                            style={{ width: `${Math.min(occupancyRate, 100)}%` }}
-                          />
-                        </div>
-                        <div className="space-y-2 pt-2">
-                          <div className="flex gap-2">
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {Number(classItem.registration_fee || 0).toLocaleString()} F
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {Number(classItem.annual_tuition || 0).toLocaleString()} F
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="font-semibold text-green-600 dark:text-green-400">
+                              {classItem.totalPayments.toLocaleString()} F
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              / {classItem.expectedRevenue.toLocaleString()} F
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-1">
                             <Button
-                              variant="default"
-                              size="sm"
-                              className="flex-1 bg-primary hover:bg-primary/90"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
                               onClick={() => navigate(`/students?class=${encodeURIComponent(classItem.name)}`)}
+                              title="Élèves"
                             >
-                              <UserCog className="h-4 w-4 mr-1" />
-                              Liste des élèves
+                              <Users className="h-4 w-4" />
                             </Button>
                             <Button
-                              variant="default"
-                              size="sm"
-                              className="flex-1 bg-gradient-primary hover:opacity-90"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
                               onClick={() => navigate(`/payments?class=${encodeURIComponent(classItem.name)}`)}
+                              title="Paiements"
                             >
-                              <DollarSign className="h-4 w-4 mr-1" />
-                              Paiements
+                              <DollarSign className="h-4 w-4" />
                             </Button>
-                          </div>
-                          <div className="flex gap-2">
                             <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
                               onClick={() => handleEdit(classItem)}
+                              title="Modifier"
                             >
-                              <Pencil className="h-4 w-4 mr-1" />
-                              Modifier
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
                               onClick={() => handleDeleteClick(classItem.id)}
+                              title="Supprimer"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredClasses.map((classItem) => (
+                  <Card
+                    key={classItem.id}
+                    className="hover:shadow-elegant transition-shadow duration-300"
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg text-foreground">
+                          {classItem.name}
+                        </CardTitle>
+                        <Badge
+                          variant="outline"
+                          className={
+                            classItem.occupancyRate >= 95
+                              ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300"
+                              : classItem.occupancyRate >= 85
+                              ? "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300"
+                              : "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300"
+                          }
+                        >
+                          {classItem.occupancyRate.toFixed(0)}%
+                        </Badge>
+                      </div>
+                      <Badge variant="outline" className="w-fit">{classItem.level}</Badge>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {classItem.teacher_name && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Professeur</span>
+                          <span className="font-medium text-foreground">{classItem.teacher_name}</span>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                      )}
+                      {classItem.room_number && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Salle</span>
+                          <span className="font-medium text-foreground">{classItem.room_number}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Effectif</span>
+                        <span className="font-medium text-foreground">
+                          {classItem.studentCount} / {classItem.capacity}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Revenus</span>
+                        <span className="font-semibold text-green-600 dark:text-green-400">
+                          {classItem.totalPayments.toLocaleString()} F
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-500 ${
+                            classItem.occupancyRate >= 95
+                              ? "bg-red-500"
+                              : classItem.occupancyRate >= 85
+                              ? "bg-yellow-500"
+                              : "bg-gradient-primary"
+                          }`}
+                          style={{ width: `${Math.min(classItem.occupancyRate, 100)}%` }}
+                        />
+                      </div>
+                      <div className="space-y-2 pt-2">
+                        <div className="flex gap-2">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="flex-1 bg-primary hover:bg-primary/90"
+                            onClick={() => navigate(`/students?class=${encodeURIComponent(classItem.name)}`)}
+                          >
+                            <UserCog className="h-4 w-4 mr-1" />
+                            Élèves
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="flex-1 bg-gradient-primary hover:opacity-90"
+                            onClick={() => navigate(`/payments?class=${encodeURIComponent(classItem.name)}`)}
+                          >
+                            <DollarSign className="h-4 w-4 mr-1" />
+                            Paiements
+                          </Button>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => handleEdit(classItem)}
+                          >
+                            <Pencil className="h-4 w-4 mr-1" />
+                            Modifier
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteClick(classItem.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             )}
           </CardContent>
