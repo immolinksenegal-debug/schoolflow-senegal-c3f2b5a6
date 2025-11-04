@@ -8,81 +8,81 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Deep professional blue as primary */
-    --background: 220 25% 97%;
-    --foreground: 220 70% 15%;
+    /* EduKash brand colors - Green and Orange palette */
+    --background: 150 15% 97%;
+    --foreground: 160 80% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 70% 15%;
+    --card-foreground: 160 80% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 70% 15%;
+    --popover-foreground: 160 80% 15%;
 
-    /* Deep navy blue */
-    --primary: 220 70% 25%;
+    /* Deep emerald green (from graduation cap) */
+    --primary: 160 80% 25%;
     --primary-foreground: 0 0% 100%;
 
-    /* Lighter blue accent */
-    --secondary: 220 60% 92%;
-    --secondary-foreground: 220 70% 25%;
+    /* Light green accent */
+    --secondary: 150 40% 92%;
+    --secondary-foreground: 160 80% 25%;
 
-    --muted: 220 25% 94%;
-    --muted-foreground: 220 30% 45%;
+    --muted: 150 20% 94%;
+    --muted-foreground: 150 25% 45%;
 
-    /* Elegant gold accent */
-    --accent: 45 100% 60%;
-    --accent-foreground: 220 70% 15%;
+    /* Vibrant gold/yellow accent (from XOF badge) */
+    --accent: 45 100% 55%;
+    --accent-foreground: 160 80% 15%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 8 90% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 25% 88%;
-    --input: 220 25% 88%;
-    --ring: 220 70% 25%;
+    --border: 150 20% 88%;
+    --input: 150 20% 88%;
+    --ring: 160 80% 25%;
 
     --radius: 0.75rem;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(220 70% 25%), hsl(220 60% 35%));
-    --gradient-accent: linear-gradient(135deg, hsl(220 70% 25%), hsl(45 100% 60%));
-    --gradient-soft: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 25% 97%));
+    --gradient-primary: linear-gradient(135deg, hsl(160 80% 25%), hsl(160 70% 35%));
+    --gradient-accent: linear-gradient(135deg, hsl(160 80% 25%), hsl(45 100% 55%));
+    --gradient-soft: linear-gradient(180deg, hsl(0 0% 100%), hsl(150 15% 97%));
 
     /* Shadows */
-    --shadow-elegant: 0 10px 40px -10px hsl(220 70% 25% / 0.15);
-    --shadow-card: 0 4px 20px -4px hsl(220 70% 25% / 0.1);
+    --shadow-elegant: 0 10px 40px -10px hsl(160 80% 25% / 0.15);
+    --shadow-card: 0 4px 20px -4px hsl(160 80% 25% / 0.1);
   }
 
   .dark {
-    --background: 220 70% 8%;
-    --foreground: 220 25% 95%;
+    --background: 160 70% 8%;
+    --foreground: 150 25% 95%;
 
-    --card: 220 60% 12%;
-    --card-foreground: 220 25% 95%;
+    --card: 160 60% 12%;
+    --card-foreground: 150 25% 95%;
 
-    --popover: 220 60% 12%;
-    --popover-foreground: 220 25% 95%;
+    --popover: 160 60% 12%;
+    --popover-foreground: 150 25% 95%;
 
-    --primary: 220 60% 45%;
+    --primary: 160 60% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 50% 18%;
-    --secondary-foreground: 220 25% 95%;
+    --secondary: 160 50% 18%;
+    --secondary-foreground: 150 25% 95%;
 
-    --muted: 220 50% 18%;
-    --muted-foreground: 220 25% 65%;
+    --muted: 160 50% 18%;
+    --muted-foreground: 150 25% 65%;
 
-    --accent: 45 100% 60%;
-    --accent-foreground: 220 70% 8%;
+    --accent: 45 100% 55%;
+    --accent-foreground: 160 70% 8%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 220 25% 95%;
+    --destructive: 8 70% 40%;
+    --destructive-foreground: 150 25% 95%;
 
-    --border: 220 50% 20%;
-    --input: 220 50% 20%;
-    --ring: 220 60% 45%;
+    --border: 160 50% 20%;
+    --input: 160 50% 20%;
+    --ring: 160 60% 45%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(220 60% 15%), hsl(220 50% 25%));
-    --gradient-accent: linear-gradient(135deg, hsl(220 60% 15%), hsl(45 100% 60%));
+    --gradient-primary: linear-gradient(135deg, hsl(160 60% 15%), hsl(160 50% 25%));
+    --gradient-accent: linear-gradient(135deg, hsl(160 60% 15%), hsl(45 100% 55%));
     --shadow-elegant: 0 10px 40px -10px hsl(0 0% 0% / 0.4);
     --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.3);
   }
