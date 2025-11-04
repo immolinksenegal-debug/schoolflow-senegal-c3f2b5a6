@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Users, BookOpen, Pencil, Trash2, UserCog, DollarSign, Search, Grid, Table as TableIcon } from "lucide-react";
+import { Plus, Users, BookOpen, Pencil, Trash2, UserCog, DollarSign, Search, Grid, Table as TableIcon, Phone, Mail, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Classes = () => {
@@ -48,6 +55,8 @@ const Classes = () => {
   const [editingClass, setEditingClass] = useState<Class | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
+  const [studentsDialogOpen, setStudentsDialogOpen] = useState(false);
+  const [selectedClassForStudents, setSelectedClassForStudents] = useState<string | null>(null);
 
   const levels = ["Terminale", "Première", "Seconde", "Troisième", "Quatrième", "Cinquième", "Sixième"];
 
@@ -167,6 +176,16 @@ const Classes = () => {
       setEditingClass(undefined);
     }
   };
+
+  const handleShowStudents = (className: string) => {
+    setSelectedClassForStudents(className);
+    setStudentsDialogOpen(true);
+  };
+
+  const classStudents = useMemo(() => {
+    if (!selectedClassForStudents) return [];
+    return students.filter(s => s.class === selectedClassForStudents);
+  }, [selectedClassForStudents, students]);
 
   if (isLoading) {
     return (
@@ -444,7 +463,7 @@ const Classes = () => {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
-                              onClick={() => navigate(`/payments?class=${encodeURIComponent(classItem.name)}`)}
+                              onClick={() => handleShowStudents(classItem.name)}
                               title="Paiements"
                             >
                               <DollarSign className="h-4 w-4" />
@@ -553,7 +572,7 @@ const Classes = () => {
                             variant="default"
                             size="sm"
                             className="flex-1 bg-gradient-primary hover:opacity-90"
-                            onClick={() => navigate(`/payments?class=${encodeURIComponent(classItem.name)}`)}
+                            onClick={() => handleShowStudents(classItem.name)}
                           >
                             <DollarSign className="h-4 w-4 mr-1" />
                             Paiements
@@ -615,6 +634,109 @@ const Classes = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={studentsDialogOpen} onOpenChange={setStudentsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Élèves de {selectedClassForStudents}</DialogTitle>
+            <DialogDescription>
+              {classStudents.length} élève{classStudents.length > 1 ? "s" : ""} inscrit{classStudents.length > 1 ? "s" : ""} dans cette classe
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {classStudents.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Aucun élève inscrit dans cette classe</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {classStudents.map((student) => {
+                  const studentPayments = payments.filter(p => p.student_id === student.id);
+                  const totalPaid = studentPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+                  
+                  return (
+                    <Card key={student.id} className="hover:shadow-elegant transition-shadow">
+                      <CardContent className="pt-6">
+                        <div className="flex flex-col md:flex-row gap-4">
+                          <div className="flex-1 space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h3 className="font-semibold text-lg text-foreground">{student.full_name}</h3>
+                                <p className="text-sm text-muted-foreground">Matricule: {student.matricule}</p>
+                              </div>
+                              <Badge 
+                                variant="outline"
+                                className={
+                                  student.payment_status === "paid"
+                                    ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300"
+                                    : student.payment_status === "partial"
+                                    ? "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300"
+                                    : "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300"
+                                }
+                              >
+                                {student.payment_status === "paid" ? "À jour" : student.payment_status === "partial" ? "Partiel" : "En attente"}
+                              </Badge>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Phone className="h-4 w-4" />
+                                <span>{student.parent_phone}</span>
+                              </div>
+                              {student.parent_email && (
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <Mail className="h-4 w-4" />
+                                  <span>{student.parent_email}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Users className="h-4 w-4" />
+                                <span>{student.parent_name}</span>
+                              </div>
+                              {student.address && (
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <MapPin className="h-4 w-4" />
+                                  <span className="truncate">{student.address}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="md:w-48 flex flex-col gap-2">
+                            <div className="text-sm space-y-1">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Payé:</span>
+                                <span className="font-semibold text-green-600 dark:text-green-400">
+                                  {totalPaid.toLocaleString()} F
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Paiements:</span>
+                                <span className="font-medium text-foreground">{studentPayments.length}</span>
+                              </div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setStudentsDialogOpen(false);
+                                navigate(`/students?id=${student.id}`);
+                              }}
+                            >
+                              Voir détails
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
