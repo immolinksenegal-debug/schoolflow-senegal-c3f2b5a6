@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { SchoolsManagement } from "@/components/admin/SchoolsManagement";
+import { UsersManagement } from "@/components/admin/UsersManagement";
+import { ReportsPanel } from "@/components/admin/ReportsPanel";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -143,51 +146,15 @@ const Admin = () => {
           </TabsList>
 
           <TabsContent value="schools">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestion des écoles</CardTitle>
-                <CardDescription>
-                  Gérez les établissements scolaires de la plateforme
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Fonctionnalité en cours de développement...
-                </p>
-              </CardContent>
-            </Card>
+            <SchoolsManagement />
           </TabsContent>
 
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestion des utilisateurs</CardTitle>
-                <CardDescription>
-                  Gérez les comptes utilisateurs et leurs rôles
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Fonctionnalité en cours de développement...
-                </p>
-              </CardContent>
-            </Card>
+            <UsersManagement />
           </TabsContent>
 
           <TabsContent value="reports">
-            <Card>
-              <CardHeader>
-                <CardTitle>Rapports et statistiques</CardTitle>
-                <CardDescription>
-                  Consultez les rapports détaillés de la plateforme
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Fonctionnalité en cours de développement...
-                </p>
-              </CardContent>
-            </Card>
+            <ReportsPanel />
           </TabsContent>
 
           <TabsContent value="settings">
