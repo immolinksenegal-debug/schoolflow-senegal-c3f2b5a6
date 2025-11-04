@@ -56,6 +56,7 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
   const { students } = useStudents();
   const { classes } = useClasses();
   const [selectedClass, setSelectedClass] = useState<string>("");
+  const [studentSearch, setStudentSearch] = useState<string>("");
 
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
@@ -75,12 +76,21 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
     onSubmit(data);
     form.reset();
     setSelectedClass("");
+    setStudentSearch("");
   };
 
-  // Filter students by selected class
-  const filteredStudents = selectedClass
-    ? students.filter(s => s.class === selectedClass && s.status === 'active')
-    : students.filter(s => s.status === 'active');
+  // Filter students by selected class and search query
+  const filteredStudents = students
+    .filter(s => s.status === 'active')
+    .filter(s => !selectedClass || s.class === selectedClass)
+    .filter(s => {
+      if (!studentSearch) return true;
+      const search = studentSearch.toLowerCase();
+      return (
+        s.full_name.toLowerCase().includes(search) ||
+        s.matricule.toLowerCase().includes(search)
+      );
+    });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -93,6 +103,19 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            {/* Auto-generated reference display */}
+            <div className="p-3 bg-muted/50 rounded-lg border border-border">
+              <p className="text-sm font-medium text-muted-foreground mb-1">
+                Référence de paiement (générée automatiquement)
+              </p>
+              <p className="text-lg font-mono font-bold text-primary">
+                REC{new Date().getFullYear().toString().slice(-2)}XXXXXX
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Le numéro sera généré lors de l'enregistrement
+              </p>
+            </div>
+
             {/* Class Selection First */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Sélectionner la classe *</label>
@@ -115,7 +138,34 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
               )}
             </div>
 
-            {/* Student Selection - Only show if class is selected */}
+            {/* Student Search Field - Show if class is selected */}
+            {selectedClass && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Rechercher un élève</label>
+                <div className="relative">
+                  <Input
+                    placeholder="Rechercher par nom ou matricule..."
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                    className="pr-10"
+                  />
+                  {studentSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setStudentSearch("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {filteredStudents.length} élève(s) trouvé(s)
+                </p>
+              </div>
+            )}
+
+            {/* Student Selection */}
             <FormField
               control={form.control}
               name="student_id"
@@ -132,15 +182,18 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
                         <SelectValue placeholder={selectedClass ? "Sélectionner un élève..." : "Sélectionnez d'abord une classe"} />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px]">
                       {filteredStudents.length === 0 ? (
                         <div className="p-2 text-sm text-muted-foreground text-center">
-                          Aucun élève trouvé dans cette classe
+                          {studentSearch ? "Aucun élève trouvé pour cette recherche" : "Aucun élève trouvé dans cette classe"}
                         </div>
                       ) : (
                         filteredStudents.map((student) => (
                           <SelectItem key={student.id} value={student.id}>
-                            {student.matricule} - {student.full_name}
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs text-muted-foreground">{student.matricule}</span>
+                              <span className="font-medium">{student.full_name}</span>
+                            </div>
                           </SelectItem>
                         ))
                       )}
