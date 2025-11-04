@@ -24,11 +24,24 @@ const Auth = () => {
       if (!user || rolesLoading) return;
 
       // Check if user has a school
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("school_id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
+
+      // If profile doesn't exist, create it
+      if (profileError || !profile) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData.user) {
+          await supabase.from("profiles").insert({
+            user_id: userData.user.id,
+            full_name: userData.user.user_metadata?.full_name || userData.user.email || "Utilisateur",
+          });
+        }
+        navigate("/onboarding");
+        return;
+      }
 
       // If no roles yet, go to onboarding
       if (!roles || roles.length === 0) {
