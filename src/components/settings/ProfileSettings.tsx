@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -15,7 +16,9 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/useProfile";
-import { User, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { User, Loader2, Upload, X } from "lucide-react";
 
 const profileSchema = z.object({
   full_name: z.string().min(1, "Le nom est requis").max(200),
@@ -26,6 +29,9 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export const ProfileSettings = () => {
   const { profile, userEmail, isLoading, updateProfile } = useProfile();
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -35,8 +41,87 @@ export const ProfileSettings = () => {
     },
   });
 
-  const onSubmit = (data: ProfileFormData) => {
-    updateProfile.mutate(data);
+  useEffect(() => {
+    if (profile?.avatar_url) {
+      setAvatarPreview(profile.avatar_url);
+    }
+  }, [profile]);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Veuillez sélectionner une image");
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("L'image ne doit pas dépasser 2 Mo");
+        return;
+      }
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview(profile?.avatar_url || null);
+  };
+
+  const onSubmit = async (data: ProfileFormData) => {
+    try {
+      setUploading(true);
+      let avatarUrl = profile?.avatar_url;
+
+      // Upload new avatar if selected
+      if (avatarFile) {
+        const fileExt = avatarFile.name.split(".").pop();
+        const fileName = `${profile?.user_id}-${Date.now()}.${fileExt}`;
+        
+        // Delete old avatar if exists
+        if (profile?.avatar_url) {
+          const oldFileName = profile.avatar_url.split('/').pop();
+          if (oldFileName && oldFileName.includes(profile.user_id)) {
+            await supabase.storage
+              .from("avatars")
+              .remove([oldFileName]);
+          }
+        }
+
+        const { error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(fileName, avatarFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          throw uploadError;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("avatars")
+          .getPublicUrl(fileName);
+
+        avatarUrl = publicUrl;
+        setAvatarFile(null);
+      }
+
+      // Update profile with all data
+      await updateProfile.mutateAsync({
+        full_name: data.full_name,
+        phone: data.phone || null,
+        avatar_url: avatarUrl || null,
+      });
+
+      setAvatarPreview(avatarUrl || null);
+    } catch (error: any) {
+      console.error("Error in submit:", error);
+      toast.error(error.message || "Erreur lors de la mise à jour");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const getInitials = (name: string) => {
@@ -70,16 +155,49 @@ export const ProfileSettings = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-4 mb-6 pb-6 border-b">
-          <Avatar className="h-20 w-20">
-            <AvatarImage src={profile?.avatar_url} />
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xl">
-              {profile?.full_name ? getInitials(profile.full_name) : "U"}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm text-muted-foreground">Photo de profil</p>
-            <p className="text-xs text-muted-foreground mt-1">Format JPG, PNG ou GIF (max. 2MB)</p>
+        <div className="flex items-center gap-6 mb-6 pb-6 border-b">
+          <div className="relative">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src={avatarPreview || undefined} />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-2xl">
+                {profile?.full_name ? getInitials(profile.full_name) : "U"}
+              </AvatarFallback>
+            </Avatar>
+            {avatarFile && (
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute -top-2 -right-2 h-7 w-7"
+                onClick={handleRemoveAvatar}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium mb-2">Photo de profil</p>
+            <div className="flex items-center gap-2">
+              <Input
+                id="avatar"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById('avatar')?.click()}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Changer la photo
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Format JPG, PNG ou WEBP (max. 2 Mo)
+            </p>
           </div>
         </div>
 
@@ -129,10 +247,10 @@ export const ProfileSettings = () => {
             <div className="flex justify-end pt-4">
               <Button 
                 type="submit" 
-                disabled={updateProfile.isPending || !form.formState.isDirty}
+                disabled={updateProfile.isPending || uploading || (!form.formState.isDirty && !avatarFile)}
                 className="bg-gradient-primary hover:opacity-90"
               >
-                {updateProfile.isPending ? (
+                {updateProfile.isPending || uploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Enregistrement...

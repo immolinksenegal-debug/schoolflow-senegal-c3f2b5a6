@@ -60,19 +60,27 @@ export const useProfile = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .update(updates)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
         .eq("user_id", user.user.id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Update error:", error);
+        throw error;
+      }
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.setQueryData(["profile"], data);
       toast.success("Profil mis à jour avec succès");
     },
     onError: (error: any) => {
+      console.error("Error updating profile:", error);
       toast.error(error.message || "Erreur lors de la mise à jour");
     },
   });
