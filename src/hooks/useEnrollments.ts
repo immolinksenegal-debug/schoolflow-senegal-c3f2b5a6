@@ -1,0 +1,258 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useProfile } from "./useProfile";
+
+export interface Enrollment {
+  id: string;
+  school_id: string;
+  student_id?: string;
+  enrollment_type: 'new' | 're-enrollment';
+  academic_year: string;
+  previous_class?: string;
+  requested_class: string;
+  enrollment_date: string;
+  enrollment_fee?: number;
+  payment_status: 'pending' | 'partial' | 'paid';
+  status: 'pending' | 'approved' | 'rejected' | 'documents_missing';
+  documents_submitted: Record<string, boolean>;
+  notes?: string;
+  approved_by?: string;
+  approved_at?: string;
+  created_at: string;
+  updated_at: string;
+  students?: {
+    full_name: string;
+    phone?: string;
+    parent_name: string;
+    parent_phone: string;
+    matricule: string;
+    class: string;
+  };
+}
+
+export interface CreateEnrollmentData {
+  enrollment_type: 'new' | 're-enrollment';
+  academic_year: string;
+  previous_class?: string;
+  requested_class: string;
+  enrollment_date?: string;
+  enrollment_fee?: number;
+  payment_status?: 'pending' | 'partial' | 'paid';
+  status?: 'pending' | 'approved' | 'rejected' | 'documents_missing';
+  documents_submitted?: Record<string, boolean>;
+  notes?: string;
+  student_id?: string;
+  // New student data if creating new student
+  student_data?: {
+    full_name: string;
+    date_of_birth: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    parent_name: string;
+    parent_phone: string;
+    parent_email?: string;
+    class: string;
+  };
+}
+
+export interface UpdateEnrollmentData extends Partial<CreateEnrollmentData> {}
+
+export const useEnrollments = () => {
+  const queryClient = useQueryClient();
+  const { profile } = useProfile();
+
+  const { data: enrollments = [], isLoading, error } = useQuery({
+    queryKey: ["enrollments", profile?.school_id],
+    queryFn: async () => {
+      if (!profile?.school_id) return [];
+
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select(`
+          *,
+          students (
+            full_name,
+            phone,
+            parent_name,
+            parent_phone,
+            matricule,
+            class
+          )
+        `)
+        .eq("school_id", profile.school_id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as Enrollment[];
+    },
+    enabled: !!profile?.school_id,
+  });
+
+  const createEnrollment = useMutation({
+    mutationFn: async (enrollmentData: CreateEnrollmentData) => {
+      if (!profile?.school_id) {
+        throw new Error("Aucune école associée");
+      }
+
+      const currentYear = new Date().getFullYear();
+      const academicYear = `${currentYear}-${currentYear + 1}`;
+
+      // If creating new student along with enrollment
+      if (enrollmentData.student_data && enrollmentData.enrollment_type === 'new') {
+        const { student_data, ...enrollment } = enrollmentData;
+        
+        // Generate matricule
+        const matricule = `STD${Date.now()}`;
+
+        // Create student first
+        const { data: newStudent, error: studentError } = await supabase
+          .from("students")
+          .insert({
+            ...student_data,
+            school_id: profile.school_id,
+            matricule,
+            status: 'pending',
+            payment_status: 'pending',
+          })
+          .select()
+          .single();
+
+        if (studentError) throw studentError;
+
+        // Then create enrollment
+        const { data, error } = await supabase
+          .from("enrollments")
+          .insert({
+            ...enrollment,
+            school_id: profile.school_id,
+            student_id: newStudent.id,
+            academic_year: academicYear,
+            status: 'pending',
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+
+      // For re-enrollment or enrollment with existing student
+      const { data, error } = await supabase
+        .from("enrollments")
+        .insert({
+          ...enrollmentData,
+          school_id: profile.school_id,
+          academic_year: enrollmentData.academic_year || academicYear,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success("Inscription créée avec succès");
+    },
+    onError: (error: any) => {
+      console.error("Error creating enrollment:", error);
+      toast.error(error.message || "Erreur lors de la création de l'inscription");
+    },
+  });
+
+  const updateEnrollment = useMutation({
+    mutationFn: async ({ id, ...updates }: UpdateEnrollmentData & { id: string }) => {
+      const { data, error } = await supabase
+        .from("enrollments")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+      toast.success("Inscription mise à jour avec succès");
+    },
+    onError: (error: any) => {
+      console.error("Error updating enrollment:", error);
+      toast.error(error.message || "Erreur lors de la mise à jour");
+    },
+  });
+
+  const approveEnrollment = useMutation({
+    mutationFn: async (id: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié");
+
+      const { data, error } = await supabase
+        .from("enrollments")
+        .update({
+          status: 'approved',
+          approved_by: user.id,
+          approved_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update student status if enrollment is approved
+      if (data.student_id) {
+        await supabase
+          .from("students")
+          .update({
+            status: 'active',
+            class: data.requested_class,
+          })
+          .eq("id", data.student_id);
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success("Inscription approuvée");
+    },
+    onError: (error: any) => {
+      console.error("Error approving enrollment:", error);
+      toast.error(error.message || "Erreur lors de l'approbation");
+    },
+  });
+
+  const deleteEnrollment = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("enrollments")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+      toast.success("Inscription supprimée avec succès");
+    },
+    onError: (error: any) => {
+      console.error("Error deleting enrollment:", error);
+      toast.error(error.message || "Erreur lors de la suppression");
+    },
+  });
+
+  return {
+    enrollments,
+    isLoading,
+    error,
+    createEnrollment,
+    updateEnrollment,
+    approveEnrollment,
+    deleteEnrollment,
+  };
+};

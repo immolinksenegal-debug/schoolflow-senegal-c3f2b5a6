@@ -53,6 +53,74 @@ export type Database = {
         }
         Relationships: []
       }
+      enrollments: {
+        Row: {
+          academic_year: string
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          documents_submitted: Json | null
+          enrollment_date: string
+          enrollment_fee: number | null
+          enrollment_type: string
+          id: string
+          notes: string | null
+          payment_status: string
+          previous_class: string | null
+          requested_class: string
+          school_id: string
+          status: string
+          student_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          documents_submitted?: Json | null
+          enrollment_date?: string
+          enrollment_fee?: number | null
+          enrollment_type: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          previous_class?: string | null
+          requested_class: string
+          school_id: string
+          status?: string
+          student_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          documents_submitted?: Json | null
+          enrollment_date?: string
+          enrollment_fee?: number | null
+          enrollment_type?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          previous_class?: string | null
+          requested_class?: string
+          school_id?: string
+          status?: string
+          student_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
