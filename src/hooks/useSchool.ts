@@ -59,8 +59,23 @@ export const useSchool = () => {
 
   const updateSchool = useMutation({
     mutationFn: async (updates: UpdateSchoolData) => {
-      if (!school?.id) {
-        throw new Error("Aucune école à mettre à jour");
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user?.id) {
+        throw new Error("Non authentifié");
+      }
+
+      // Get school_id from profile
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("school_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+      
+      if (!profile?.school_id) {
+        throw new Error("Aucune école associée à votre profil");
       }
 
       const { data, error } = await supabase
@@ -69,17 +84,13 @@ export const useSchool = () => {
           ...updates,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", school.id)
+        .eq("id", profile.school_id)
         .select()
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Update error:", error);
         throw error;
-      }
-      
-      if (!data) {
-        throw new Error("École non trouvée");
       }
       
       return data;

@@ -66,15 +66,11 @@ export const useProfile = () => {
         })
         .eq("user_id", user.user.id)
         .select()
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Update error:", error);
         throw error;
-      }
-      
-      if (!data) {
-        throw new Error("Profil non trouvé");
       }
       
       return data;
