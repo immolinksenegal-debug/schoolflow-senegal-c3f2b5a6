@@ -2,16 +2,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SchoolSettings } from "@/components/settings/SchoolSettings";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, Shield, Palette, Loader2 } from "lucide-react";
+import { Bell, Shield, Palette, Loader2, Check, Settings as SettingsIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useTheme } from "@/components/ThemeProvider";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const Settings = () => {
   const { preferences, isLoading, updatePreferences } = usePreferences();
   const { theme, setTheme } = useTheme();
+  const [savingKey, setSavingKey] = useState<string | null>(null);
 
   // Sync theme with preferences
   useEffect(() => {
@@ -22,11 +25,22 @@ const Settings = () => {
     }
   }, [preferences?.dark_mode]);
 
-  const handlePreferenceChange = (key: string, value: boolean) => {
+  const handlePreferenceChange = async (key: string, value: boolean) => {
+    setSavingKey(key);
+    
     if (key === "dark_mode") {
       setTheme(value ? "dark" : "light");
     }
-    updatePreferences.mutate({ [key]: value });
+    
+    try {
+      await updatePreferences.mutateAsync({ [key]: value });
+    } finally {
+      setTimeout(() => setSavingKey(null), 1000);
+    }
+  };
+
+  const handleLanguageChange = async (value: string) => {
+    toast.info("Changement de langue - fonctionnalité à venir");
   };
 
   if (isLoading) {
@@ -75,43 +89,91 @@ const Settings = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 flex-1">
                     <Label htmlFor="email-notifications">Notifications par email</Label>
                     <p className="text-sm text-muted-foreground">
                       Recevoir des notifications par email
                     </p>
                   </div>
-                  <Switch 
-                    id="email-notifications" 
-                    checked={preferences?.email_notifications ?? true}
-                    onCheckedChange={(checked) => handlePreferenceChange("email_notifications", checked)}
-                  />
+                  <div className="flex items-center gap-2">
+                    {savingKey === "email_notifications" && (
+                      <Check className="h-4 w-4 text-green-500 animate-in fade-in" />
+                    )}
+                    <Switch 
+                      id="email-notifications" 
+                      checked={preferences?.email_notifications ?? true}
+                      onCheckedChange={(checked) => handlePreferenceChange("email_notifications", checked)}
+                      disabled={updatePreferences.isPending}
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 flex-1">
                     <Label htmlFor="payment-alerts">Alertes de paiement</Label>
                     <p className="text-sm text-muted-foreground">
                       Notifications pour les retards de paiement
                     </p>
                   </div>
-                  <Switch 
-                    id="payment-alerts" 
-                    checked={preferences?.payment_alerts ?? true}
-                    onCheckedChange={(checked) => handlePreferenceChange("payment_alerts", checked)}
-                  />
+                  <div className="flex items-center gap-2">
+                    {savingKey === "payment_alerts" && (
+                      <Check className="h-4 w-4 text-green-500 animate-in fade-in" />
+                    )}
+                    <Switch 
+                      id="payment-alerts" 
+                      checked={preferences?.payment_alerts ?? true}
+                      onCheckedChange={(checked) => handlePreferenceChange("payment_alerts", checked)}
+                      disabled={updatePreferences.isPending}
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 flex-1">
                     <Label htmlFor="enrollment-alerts">Alertes d'inscription</Label>
                     <p className="text-sm text-muted-foreground">
                       Notifications pour les nouvelles inscriptions
                     </p>
                   </div>
-                  <Switch 
-                    id="enrollment-alerts" 
-                    checked={preferences?.enrollment_alerts ?? true}
-                    onCheckedChange={(checked) => handlePreferenceChange("enrollment_alerts", checked)}
-                  />
+                  <div className="flex items-center gap-2">
+                    {savingKey === "enrollment_alerts" && (
+                      <Check className="h-4 w-4 text-green-500 animate-in fade-in" />
+                    )}
+                    <Switch 
+                      id="enrollment-alerts" 
+                      checked={preferences?.enrollment_alerts ?? true}
+                      onCheckedChange={(checked) => handlePreferenceChange("enrollment_alerts", checked)}
+                      disabled={updatePreferences.isPending}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <SettingsIcon className="h-5 w-5 text-primary" />
+                  <CardTitle>Général</CardTitle>
+                </div>
+                <CardDescription>
+                  Paramètres généraux de l'application
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="language">Langue</Label>
+                  <Select defaultValue="fr" onValueChange={handleLanguageChange}>
+                    <SelectTrigger id="language">
+                      <SelectValue placeholder="Sélectionner une langue" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fr">Français</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="wo">Wolof</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Choisissez la langue de l'interface
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -128,30 +190,42 @@ const Settings = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 flex-1">
                     <Label htmlFor="dark-mode">Mode sombre</Label>
                     <p className="text-sm text-muted-foreground">
                       Activer le thème sombre
                     </p>
                   </div>
-                  <Switch 
-                    id="dark-mode" 
-                    checked={preferences?.dark_mode ?? false}
-                    onCheckedChange={(checked) => handlePreferenceChange("dark_mode", checked)}
-                  />
+                  <div className="flex items-center gap-2">
+                    {savingKey === "dark_mode" && (
+                      <Check className="h-4 w-4 text-green-500 animate-in fade-in" />
+                    )}
+                    <Switch 
+                      id="dark-mode" 
+                      checked={preferences?.dark_mode ?? false}
+                      onCheckedChange={(checked) => handlePreferenceChange("dark_mode", checked)}
+                      disabled={updatePreferences.isPending}
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 flex-1">
                     <Label htmlFor="compact-view">Vue compacte</Label>
                     <p className="text-sm text-muted-foreground">
                       Affichage plus dense des tableaux
                     </p>
                   </div>
-                  <Switch 
-                    id="compact-view" 
-                    checked={preferences?.compact_view ?? false}
-                    onCheckedChange={(checked) => handlePreferenceChange("compact_view", checked)}
-                  />
+                  <div className="flex items-center gap-2">
+                    {savingKey === "compact_view" && (
+                      <Check className="h-4 w-4 text-green-500 animate-in fade-in" />
+                    )}
+                    <Switch 
+                      id="compact-view" 
+                      checked={preferences?.compact_view ?? false}
+                      onCheckedChange={(checked) => handlePreferenceChange("compact_view", checked)}
+                      disabled={updatePreferences.isPending}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -168,30 +242,42 @@ const Settings = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 flex-1">
                     <Label htmlFor="two-factor">Authentification à deux facteurs</Label>
                     <p className="text-sm text-muted-foreground">
                       Sécurité renforcée pour votre compte
                     </p>
                   </div>
-                  <Switch 
-                    id="two-factor" 
-                    checked={preferences?.two_factor_enabled ?? false}
-                    onCheckedChange={(checked) => handlePreferenceChange("two_factor_enabled", checked)}
-                  />
+                  <div className="flex items-center gap-2">
+                    {savingKey === "two_factor_enabled" && (
+                      <Check className="h-4 w-4 text-green-500 animate-in fade-in" />
+                    )}
+                    <Switch 
+                      id="two-factor" 
+                      checked={preferences?.two_factor_enabled ?? false}
+                      onCheckedChange={(checked) => handlePreferenceChange("two_factor_enabled", checked)}
+                      disabled={updatePreferences.isPending}
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 flex-1">
                     <Label htmlFor="session-timeout">Déconnexion automatique</Label>
                     <p className="text-sm text-muted-foreground">
                       Déconnexion après 30 minutes d'inactivité
                     </p>
                   </div>
-                  <Switch 
-                    id="session-timeout" 
-                    checked={preferences?.session_timeout ?? true}
-                    onCheckedChange={(checked) => handlePreferenceChange("session_timeout", checked)}
-                  />
+                  <div className="flex items-center gap-2">
+                    {savingKey === "session_timeout" && (
+                      <Check className="h-4 w-4 text-green-500 animate-in fade-in" />
+                    )}
+                    <Switch 
+                      id="session-timeout" 
+                      checked={preferences?.session_timeout ?? true}
+                      onCheckedChange={(checked) => handlePreferenceChange("session_timeout", checked)}
+                      disabled={updatePreferences.isPending}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
