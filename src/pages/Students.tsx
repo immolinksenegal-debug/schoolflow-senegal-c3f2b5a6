@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, UserPlus, Download, Eye, Edit, Trash2, MoreHorizontal, Printer } from "lucide-react";
+import { Search, UserPlus, Download, Eye, Edit, Trash2, MoreHorizontal, Printer, DollarSign, FileText, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -64,6 +64,8 @@ const Students = () => {
 
   const { students, isLoading, createStudent, updateStudent, deleteStudent } = useStudents();
   const { school } = useSchool();
+  const { classes } = useClasses();
+  const { payments } = usePayments();
 
   useEffect(() => {
     if (classParam) {
@@ -132,6 +134,29 @@ const Students = () => {
   const handlePrintList = () => {
     window.print();
   };
+
+  // Calculate financial info for selected student
+  const studentFinancialInfo = useMemo(() => {
+    if (!selectedStudent) return null;
+
+    const studentClass = classes.find(c => c.name === selectedStudent.class);
+    const studentPayments = payments.filter(p => p.student_id === selectedStudent.id);
+    
+    const totalPaid = studentPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const annualFee = Number(studentClass?.annual_tuition || 0);
+    const registrationFee = Number(studentClass?.registration_fee || 0);
+    const totalDue = annualFee + registrationFee;
+    const balance = totalDue - totalPaid;
+
+    return {
+      totalPaid,
+      annualFee,
+      registrationFee,
+      totalDue,
+      balance,
+      payments: studentPayments,
+    };
+  }, [selectedStudent, classes, payments]);
 
 
   return (
@@ -499,21 +524,92 @@ const Students = () => {
                     <p className="text-sm text-muted-foreground">Email parent</p>
                     <p className="font-medium">{selectedStudent.parent_email || '-'}</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Statut paiement</p>
-                    <Badge
-                      variant="outline"
-                      className={
-                        selectedStudent.payment_status === "paid"
-                          ? "bg-green-50 text-green-700 border-green-200"
-                          : selectedStudent.payment_status === "partial"
-                          ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                          : "bg-red-50 text-red-700 border-red-200"
-                      }
-                    >
-                      {getPaymentStatusLabel(selectedStudent.payment_status)}
-                    </Badge>
+                </div>
+
+                {/* Financial Information Section */}
+                <div className="border-t pt-6">
+                  <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-primary" />
+                    Situation Financière
+                  </h4>
+                  
+                  <div className="grid gap-4 mb-4">
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Frais d'inscription</p>
+                        <p className="text-lg font-semibold">{studentFinancialInfo?.registrationFee.toLocaleString() || 0} FCFA</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Scolarité annuelle</p>
+                        <p className="text-lg font-semibold">{studentFinancialInfo?.annualFee.toLocaleString() || 0} FCFA</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total à payer</p>
+                        <p className="text-xl font-bold text-primary">{studentFinancialInfo?.totalDue.toLocaleString() || 0} FCFA</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total payé</p>
+                        <p className="text-xl font-bold text-green-600">{studentFinancialInfo?.totalPaid.toLocaleString() || 0} FCFA</p>
+                      </div>
+                    </div>
+
+                    <div className={`p-4 rounded-lg ${
+                      (studentFinancialInfo?.balance || 0) > 0 
+                        ? 'bg-red-50 dark:bg-red-950' 
+                        : 'bg-green-50 dark:bg-green-950'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Solde restant</p>
+                          <p className={`text-2xl font-bold ${
+                            (studentFinancialInfo?.balance || 0) > 0 
+                              ? 'text-red-700 dark:text-red-300' 
+                              : 'text-green-700 dark:text-green-300'
+                          }`}>
+                            {studentFinancialInfo?.balance.toLocaleString() || 0} FCFA
+                          </p>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={
+                            selectedStudent.payment_status === "paid"
+                              ? "bg-green-50 text-green-700 border-green-200"
+                              : selectedStudent.payment_status === "partial"
+                              ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                              : "bg-red-50 text-red-700 border-red-200"
+                          }
+                        >
+                          {getPaymentStatusLabel(selectedStudent.payment_status)}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Payment History */}
+                  {studentFinancialInfo && studentFinancialInfo.payments.length > 0 && (
+                    <div className="mt-4">
+                      <h5 className="font-medium mb-3 flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Historique des paiements ({studentFinancialInfo.payments.length})
+                      </h5>
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {studentFinancialInfo.payments.map((payment) => (
+                          <div key={payment.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg text-sm">
+                            <div className="flex items-center gap-3">
+                              <CreditCard className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <p className="font-medium">{payment.receipt_number}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(payment.payment_date).toLocaleDateString('fr-FR')} • {payment.payment_period || '-'}
+                                </p>
+                              </div>
+                            </div>
+                            <p className="font-semibold text-green-600">{Number(payment.amount).toLocaleString()} FCFA</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
