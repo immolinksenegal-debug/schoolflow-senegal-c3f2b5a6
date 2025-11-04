@@ -28,7 +28,7 @@ const Home = () => {
           <img 
             src={eduKashLogo} 
             alt="EduKash" 
-            className="h-10 w-auto object-contain brightness-0 invert"
+            className="h-14 w-auto object-contain brightness-0 invert"
           />
           <Link to="/auth">
             <Button variant="secondary" className="gap-2">
