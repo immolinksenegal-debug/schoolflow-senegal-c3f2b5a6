@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useStudents } from "@/hooks/useStudents";
+import { useClasses } from "@/hooks/useClasses";
 import { Payment } from "@/hooks/usePayments";
 
 const paymentSchema = z.object({
@@ -52,6 +54,8 @@ const PAYMENT_TYPES = [
 
 export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading }: PaymentFormProps) => {
   const { students } = useStudents();
+  const { classes } = useClasses();
+  const [selectedClass, setSelectedClass] = useState<string>("");
 
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
@@ -70,7 +74,13 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
   const handleSubmit = (data: PaymentFormData) => {
     onSubmit(data);
     form.reset();
+    setSelectedClass("");
   };
+
+  // Filter students by selected class
+  const filteredStudents = selectedClass
+    ? students.filter(s => s.class === selectedClass && s.status === 'active')
+    : students.filter(s => s.status === 'active');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -83,24 +93,57 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            {/* Class Selection First */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Sélectionner la classe *</label>
+              <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une classe..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {classes.map((cls) => (
+                    <SelectItem key={cls.id} value={cls.name}>
+                      {cls.name} ({cls.level})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!selectedClass && (
+                <p className="text-xs text-muted-foreground">
+                  Sélectionnez d'abord une classe pour afficher les élèves
+                </p>
+              )}
+            </div>
+
+            {/* Student Selection - Only show if class is selected */}
             <FormField
               control={form.control}
               name="student_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Élève *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    disabled={!selectedClass}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Rechercher un élève..." />
+                        <SelectValue placeholder={selectedClass ? "Sélectionner un élève..." : "Sélectionnez d'abord une classe"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {students.filter(s => s.status === 'active').map((student) => (
-                        <SelectItem key={student.id} value={student.id}>
-                          {student.matricule} - {student.full_name} ({student.class})
-                        </SelectItem>
-                      ))}
+                      {filteredStudents.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          Aucun élève trouvé dans cette classe
+                        </div>
+                      ) : (
+                        filteredStudents.map((student) => (
+                          <SelectItem key={student.id} value={student.id}>
+                            {student.matricule} - {student.full_name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
