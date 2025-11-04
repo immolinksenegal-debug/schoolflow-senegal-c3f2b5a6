@@ -2,11 +2,41 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SchoolSettings } from "@/components/settings/SchoolSettings";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, Shield, Palette } from "lucide-react";
+import { Bell, Shield, Palette, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { usePreferences } from "@/hooks/usePreferences";
+import { useTheme } from "@/components/ThemeProvider";
+import { useEffect } from "react";
 
 const Settings = () => {
+  const { preferences, isLoading, updatePreferences } = usePreferences();
+  const { theme, setTheme } = useTheme();
+
+  // Sync theme with preferences
+  useEffect(() => {
+    if (preferences?.dark_mode && theme !== "dark") {
+      setTheme("dark");
+    } else if (preferences && !preferences.dark_mode && theme === "dark") {
+      setTheme("light");
+    }
+  }, [preferences?.dark_mode]);
+
+  const handlePreferenceChange = (key: string, value: boolean) => {
+    if (key === "dark_mode") {
+      setTheme(value ? "dark" : "light");
+    }
+    updatePreferences.mutate({ [key]: value });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
@@ -51,7 +81,11 @@ const Settings = () => {
                       Recevoir des notifications par email
                     </p>
                   </div>
-                  <Switch id="email-notifications" defaultChecked />
+                  <Switch 
+                    id="email-notifications" 
+                    checked={preferences?.email_notifications ?? true}
+                    onCheckedChange={(checked) => handlePreferenceChange("email_notifications", checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -60,7 +94,11 @@ const Settings = () => {
                       Notifications pour les retards de paiement
                     </p>
                   </div>
-                  <Switch id="payment-alerts" defaultChecked />
+                  <Switch 
+                    id="payment-alerts" 
+                    checked={preferences?.payment_alerts ?? true}
+                    onCheckedChange={(checked) => handlePreferenceChange("payment_alerts", checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -69,7 +107,11 @@ const Settings = () => {
                       Notifications pour les nouvelles inscriptions
                     </p>
                   </div>
-                  <Switch id="enrollment-alerts" defaultChecked />
+                  <Switch 
+                    id="enrollment-alerts" 
+                    checked={preferences?.enrollment_alerts ?? true}
+                    onCheckedChange={(checked) => handlePreferenceChange("enrollment_alerts", checked)}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -92,7 +134,11 @@ const Settings = () => {
                       Activer le thème sombre
                     </p>
                   </div>
-                  <Switch id="dark-mode" />
+                  <Switch 
+                    id="dark-mode" 
+                    checked={preferences?.dark_mode ?? false}
+                    onCheckedChange={(checked) => handlePreferenceChange("dark_mode", checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -101,7 +147,11 @@ const Settings = () => {
                       Affichage plus dense des tableaux
                     </p>
                   </div>
-                  <Switch id="compact-view" />
+                  <Switch 
+                    id="compact-view" 
+                    checked={preferences?.compact_view ?? false}
+                    onCheckedChange={(checked) => handlePreferenceChange("compact_view", checked)}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -124,7 +174,11 @@ const Settings = () => {
                       Sécurité renforcée pour votre compte
                     </p>
                   </div>
-                  <Switch id="two-factor" />
+                  <Switch 
+                    id="two-factor" 
+                    checked={preferences?.two_factor_enabled ?? false}
+                    onCheckedChange={(checked) => handlePreferenceChange("two_factor_enabled", checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -133,7 +187,11 @@ const Settings = () => {
                       Déconnexion après 30 minutes d'inactivité
                     </p>
                   </div>
-                  <Switch id="session-timeout" defaultChecked />
+                  <Switch 
+                    id="session-timeout" 
+                    checked={preferences?.session_timeout ?? true}
+                    onCheckedChange={(checked) => handlePreferenceChange("session_timeout", checked)}
+                  />
                 </div>
               </CardContent>
             </Card>

@@ -159,6 +159,48 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          compact_view: boolean | null
+          created_at: string
+          dark_mode: boolean | null
+          email_notifications: boolean | null
+          enrollment_alerts: boolean | null
+          id: string
+          payment_alerts: boolean | null
+          session_timeout: boolean | null
+          two_factor_enabled: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          compact_view?: boolean | null
+          created_at?: string
+          dark_mode?: boolean | null
+          email_notifications?: boolean | null
+          enrollment_alerts?: boolean | null
+          id?: string
+          payment_alerts?: boolean | null
+          session_timeout?: boolean | null
+          two_factor_enabled?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          compact_view?: boolean | null
+          created_at?: string
+          dark_mode?: boolean | null
+          email_notifications?: boolean | null
+          enrollment_alerts?: boolean | null
+          id?: string
+          payment_alerts?: boolean | null
+          session_timeout?: boolean | null
+          two_factor_enabled?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
