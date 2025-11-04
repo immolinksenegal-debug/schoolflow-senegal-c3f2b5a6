@@ -1,10 +1,12 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Home, Users, BookOpen, Settings, BarChart3,
-  FileText, DollarSign, AlertCircle, Receipt, TrendingUp
+  FileText, DollarSign, AlertCircle, Receipt, TrendingUp, LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import eduKashLogo from "@/assets/edukash-logo.png";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -16,6 +18,13 @@ import {
 
 const Navigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
 
   const mainLinks = [
     { to: "/", label: "Accueil", icon: Home },
@@ -179,6 +188,16 @@ const Navigation = () => {
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
+
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleSignOut}
+              className="ml-2 text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Déconnexion
+            </Button>
           </div>
         </div>
       </div>

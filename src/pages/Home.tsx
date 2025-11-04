@@ -1,10 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Users, TrendingUp, Shield, LogIn } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import bannerImage from "@/assets/school-payment-banner.jpg";
 import eduKashLogo from "@/assets/edukash-logo.png";
 
 const Home = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard");
+    }
+  }, [user, loading, navigate]);
   const features = [
     "Gestion complète des élèves et inscriptions",
     "Suivi des paiements et retards automatiques",
