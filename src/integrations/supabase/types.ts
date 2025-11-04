@@ -121,6 +121,68 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          academic_year: string
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string
+          payment_period: string | null
+          payment_type: string
+          receipt_number: string
+          school_id: string
+          student_id: string
+          transaction_reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method: string
+          payment_period?: string | null
+          payment_type: string
+          receipt_number: string
+          school_id: string
+          student_id: string
+          transaction_reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          payment_period?: string | null
+          payment_type?: string
+          receipt_number?: string
+          school_id?: string
+          student_id?: string
+          transaction_reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -345,6 +407,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_receipt_number: {
+        Args: { p_school_id: string }
+        Returns: string
+      }
       get_user_school: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
