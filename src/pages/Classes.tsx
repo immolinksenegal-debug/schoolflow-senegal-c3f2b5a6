@@ -1,11 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Plus, Users, BookOpen, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useClasses, Class } from "@/hooks/useClasses";
-import { useStudents } from "@/hooks/useStudents";
+import { useClasses, CreateClassData, Class } from "@/hooks/useClasses";
 import { ClassForm } from "@/components/classes/ClassForm";
+import { useStudents } from "@/hooks/useStudents";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,48 +20,80 @@ import {
 const Classes = () => {
   const { classes, isLoading, createClass, updateClass, deleteClass } = useClasses();
   const { students } = useStudents();
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingClass, setEditingClass] = useState<Class | undefined>();
-  const [deletingClass, setDeletingClass] = useState<Class | undefined>();
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingClass, setEditingClass] = useState<Class | undefined>(undefined);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<string | null>(null);
 
   const levels = ["Terminale", "Première", "Seconde", "Troisième", "Quatrième", "Cinquième", "Sixième"];
-  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
-
-  // Calculate students per class
-  const classesWithStudents = useMemo(() => {
-    return classes.map(classItem => {
-      const studentCount = students.filter(s => s.class === classItem.name).length;
-      return { ...classItem, studentCount };
-    });
-  }, [classes, students]);
 
   const filteredClasses = selectedLevel
-    ? classesWithStudents.filter((c) => c.level === selectedLevel)
-    : classesWithStudents;
+    ? classes.filter((c) => c.level === selectedLevel)
+    : classes;
 
-  const levelStats = levels.map((level) => ({
-    level,
-    count: classesWithStudents.filter((c) => c.level === level).length,
-    students: classesWithStudents
-      .filter((c) => c.level === level)
-      .reduce((sum, c) => sum + c.studentCount, 0),
-  }));
-
-  const handleCreateClass = async (data: any) => {
-    await createClass.mutateAsync(data);
-    setIsFormOpen(false);
+  // Calculate student count per class
+  const getStudentCount = (className: string) => {
+    return students.filter(s => s.class === className).length;
   };
 
-  const handleUpdateClass = async (data: any) => {
+  const levelStats = levels.map((level) => {
+    const levelClasses = classes.filter((c) => c.level === level);
+    const totalStudents = levelClasses.reduce((sum, c) => sum + getStudentCount(c.name), 0);
+    return {
+      level,
+      count: levelClasses.length,
+      students: totalStudents,
+    };
+  });
+
+  const handleCreateClass = (data: CreateClassData) => {
+    createClass.mutate(data, {
+      onSuccess: () => {
+        setFormOpen(false);
+      },
+    });
+  };
+
+  const handleUpdateClass = (data: CreateClassData) => {
     if (!editingClass) return;
-    await updateClass.mutateAsync({ id: editingClass.id, ...data });
-    setEditingClass(undefined);
+    updateClass.mutate(
+      { id: editingClass.id, ...data },
+      {
+        onSuccess: () => {
+          setFormOpen(false);
+          setEditingClass(undefined);
+        },
+      }
+    );
   };
 
-  const handleDeleteClass = async () => {
-    if (!deletingClass) return;
-    await deleteClass.mutateAsync(deletingClass.id);
-    setDeletingClass(undefined);
+  const handleEdit = (classItem: Class) => {
+    setEditingClass(classItem);
+    setFormOpen(true);
+  };
+
+  const handleDeleteClick = (classId: string) => {
+    setClassToDelete(classId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (classToDelete) {
+      deleteClass.mutate(classToDelete, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setClassToDelete(null);
+        },
+      });
+    }
+  };
+
+  const handleFormOpenChange = (open: boolean) => {
+    setFormOpen(open);
+    if (!open) {
+      setEditingClass(undefined);
+    }
   };
 
   if (isLoading) {
@@ -80,9 +112,9 @@ const Classes = () => {
             <h1 className="text-3xl font-bold text-foreground mb-2">Gestion des classes</h1>
             <p className="text-muted-foreground">Organisation des niveaux et classes</p>
           </div>
-          <Button 
+          <Button
             className="bg-gradient-primary hover:opacity-90 transition-opacity"
-            onClick={() => setIsFormOpen(true)}
+            onClick={() => setFormOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
             Nouvelle classe
@@ -131,24 +163,22 @@ const Classes = () => {
           </CardHeader>
           <CardContent>
             {filteredClasses.length === 0 ? (
-              <div className="text-center py-12">
-                <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <div className="text-center py-8">
                 <p className="text-muted-foreground">Aucune classe trouvée</p>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="mt-4"
-                  onClick={() => setIsFormOpen(true)}
+                  onClick={() => setFormOpen(true)}
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Créer votre première classe
+                  Créer la première classe
                 </Button>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {filteredClasses.map((classItem) => {
-                  const occupancyRate = classItem.capacity > 0 
-                    ? (classItem.studentCount / classItem.capacity) * 100 
-                    : 0;
+                  const studentCount = getStudentCount(classItem.name);
+                  const occupancyRate = (studentCount / classItem.capacity) * 100;
                   return (
                     <Card
                       key={classItem.id}
@@ -163,10 +193,10 @@ const Classes = () => {
                             variant="outline"
                             className={
                               occupancyRate >= 95
-                                ? "bg-destructive/10 text-destructive border-destructive/20"
+                                ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300"
                                 : occupancyRate >= 85
-                                ? "bg-accent/10 text-accent-foreground border-accent/20"
-                                : "bg-primary/10 text-primary border-primary/20"
+                                ? "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300"
+                                : "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300"
                             }
                           >
                             {occupancyRate.toFixed(0)}%
@@ -189,16 +219,16 @@ const Classes = () => {
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Effectif</span>
                           <span className="font-medium text-foreground">
-                            {classItem.studentCount} / {classItem.capacity}
+                            {studentCount} / {classItem.capacity}
                           </span>
                         </div>
                         <div className="h-2 rounded-full bg-secondary overflow-hidden">
                           <div
                             className={`h-full transition-all duration-500 ${
                               occupancyRate >= 95
-                                ? "bg-destructive"
+                                ? "bg-red-500"
                                 : occupancyRate >= 85
-                                ? "bg-accent"
+                                ? "bg-yellow-500"
                                 : "bg-gradient-primary"
                             }`}
                             style={{ width: `${Math.min(occupancyRate, 100)}%` }}
@@ -209,18 +239,18 @@ const Classes = () => {
                             variant="outline"
                             size="sm"
                             className="flex-1"
-                            onClick={() => setEditingClass(classItem)}
+                            onClick={() => handleEdit(classItem)}
                           >
-                            <Pencil className="h-3 w-3 mr-1" />
+                            <Pencil className="h-4 w-4 mr-1" />
                             Modifier
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             className="text-destructive hover:text-destructive"
-                            onClick={() => setDeletingClass(classItem)}
+                            onClick={() => handleDeleteClick(classItem.id)}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </CardContent>
@@ -234,29 +264,25 @@ const Classes = () => {
       </div>
 
       <ClassForm
-        open={isFormOpen || !!editingClass}
-        onOpenChange={(open) => {
-          setIsFormOpen(open);
-          if (!open) setEditingClass(undefined);
-        }}
+        open={formOpen}
+        onOpenChange={handleFormOpenChange}
         onSubmit={editingClass ? handleUpdateClass : handleCreateClass}
-        initialData={editingClass}
-        isLoading={createClass.isPending || updateClass.isPending}
+        classData={editingClass}
+        loading={createClass.isPending || updateClass.isPending}
       />
 
-      <AlertDialog open={!!deletingClass} onOpenChange={() => setDeletingClass(undefined)}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer la classe "{deletingClass?.name}" ?
-              Cette action est irréversible.
+              Êtes-vous sûr de vouloir supprimer cette classe ? Cette action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteClass}
+              onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Supprimer

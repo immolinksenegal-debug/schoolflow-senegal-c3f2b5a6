@@ -4,18 +4,18 @@ import * as z from "zod";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Class } from "@/hooks/useClasses";
 
 const classSchema = z.object({
-  name: z.string().min(1, "Le nom est requis").max(100, "Maximum 100 caractères"),
-  level: z.string().min(1, "Le niveau est requis"),
-  capacity: z.coerce.number().min(1, "La capacité doit être au moins 1").max(100, "Maximum 100 élèves"),
-  teacher_name: z.string().max(100, "Maximum 100 caractères").optional(),
-  room_number: z.string().max(50, "Maximum 50 caractères").optional(),
-  schedule: z.string().max(500, "Maximum 500 caractères").optional(),
+  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
+  level: z.string().min(1, "Veuillez sélectionner un niveau"),
+  capacity: z.number().min(1, "La capacité doit être au moins 1").max(100),
+  teacher_name: z.string().max(100).optional(),
+  room_number: z.string().max(50).optional(),
+  schedule: z.string().max(500).optional(),
 });
 
 type ClassFormData = z.infer<typeof classSchema>;
@@ -24,8 +24,8 @@ interface ClassFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: ClassFormData) => void;
-  initialData?: Class;
-  isLoading?: boolean;
+  classData?: Class;
+  loading?: boolean;
 }
 
 const LEVELS = [
@@ -43,16 +43,16 @@ const LEVELS = [
   "CP",
 ];
 
-export const ClassForm = ({ open, onOpenChange, onSubmit, initialData, isLoading }: ClassFormProps) => {
+export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: ClassFormProps) => {
   const form = useForm<ClassFormData>({
     resolver: zodResolver(classSchema),
-    defaultValues: initialData || {
-      name: "",
-      level: "",
-      capacity: 30,
-      teacher_name: "",
-      room_number: "",
-      schedule: "",
+    defaultValues: {
+      name: classData?.name || "",
+      level: classData?.level || "",
+      capacity: classData?.capacity || 30,
+      teacher_name: classData?.teacher_name || "",
+      room_number: classData?.room_number || "",
+      schedule: classData?.schedule || "",
     },
   });
 
@@ -63,16 +63,13 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, initialData, isLoading
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{initialData ? "Modifier la classe" : "Nouvelle classe"}</DialogTitle>
+          <DialogTitle>{classData ? "Modifier la classe" : "Nouvelle classe"}</DialogTitle>
           <DialogDescription>
-            {initialData 
-              ? "Modifiez les informations de la classe"
-              : "Ajoutez une nouvelle classe à votre établissement"}
+            {classData ? "Modifiez les informations de la classe" : "Ajoutez une nouvelle classe à votre établissement"}
           </DialogDescription>
         </DialogHeader>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -83,7 +80,7 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, initialData, isLoading
                   <FormItem>
                     <FormLabel>Nom de la classe *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Terminale S1" {...field} />
+                      <Input placeholder="Terminale S1" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -96,7 +93,7 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, initialData, isLoading
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Niveau *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un niveau" />
@@ -114,9 +111,7 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, initialData, isLoading
                   </FormItem>
                 )}
               />
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="capacity"
@@ -124,7 +119,12 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, initialData, isLoading
                   <FormItem>
                     <FormLabel>Capacité *</FormLabel>
                     <FormControl>
-                      <Input type="number" min="1" max="100" {...field} />
+                      <Input
+                        type="number"
+                        placeholder="30"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -138,7 +138,7 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, initialData, isLoading
                   <FormItem>
                     <FormLabel>Salle</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: A101" {...field} />
+                      <Input placeholder="A101" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -153,7 +153,7 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, initialData, isLoading
                 <FormItem>
                   <FormLabel>Professeur principal</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nom du professeur" {...field} />
+                    <Input placeholder="M. Dupont" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -167,9 +167,9 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, initialData, isLoading
                 <FormItem>
                   <FormLabel>Emploi du temps</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Informations sur l'emploi du temps..."
-                      rows={3}
+                    <Textarea
+                      placeholder="Lundi-Vendredi: 8h-17h"
+                      className="resize-none"
                       {...field}
                     />
                   </FormControl>
@@ -178,17 +178,12 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, initialData, isLoading
               )}
             />
 
-            <div className="flex gap-2 justify-end">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
-              >
+            <div className="flex justify-end gap-3 pt-4">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Enregistrement..." : initialData ? "Mettre à jour" : "Créer"}
+              <Button type="submit" disabled={loading}>
+                {loading ? "Enregistrement..." : classData ? "Mettre à jour" : "Créer la classe"}
               </Button>
             </div>
           </form>
