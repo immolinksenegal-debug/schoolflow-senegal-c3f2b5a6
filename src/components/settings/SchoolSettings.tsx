@@ -74,36 +74,58 @@ export const SchoolSettings = () => {
 
   const onSubmit = async (data: SchoolFormData) => {
     try {
+      setUploading(true);
       let logoUrl = school?.logo_url;
 
       // Upload new logo if selected
       if (logoFile) {
-        setUploading(true);
         const fileExt = logoFile.name.split(".").pop();
         const fileName = `${school?.id}-${Date.now()}.${fileExt}`;
         
+        // Delete old logo if exists
+        if (school?.logo_url) {
+          const oldFileName = school.logo_url.split('/').pop();
+          if (oldFileName) {
+            await supabase.storage
+              .from("school-logos")
+              .remove([oldFileName]);
+          }
+        }
+
         const { error: uploadError } = await supabase.storage
           .from("school-logos")
-          .upload(fileName, logoFile);
+          .upload(fileName, logoFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          throw uploadError;
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from("school-logos")
           .getPublicUrl(fileName);
 
         logoUrl = publicUrl;
-        setUploading(false);
         setLogoFile(null);
       }
 
-      updateSchool.mutate({
-        ...data,
-        logo_url: logoUrl,
+      // Update school with all data
+      await updateSchool.mutateAsync({
+        name: data.name,
+        address: data.address || null,
+        phone: data.phone || null,
+        email: data.email || null,
+        logo_url: logoUrl || null,
       });
+
+      setLogoPreview(logoUrl || null);
     } catch (error: any) {
-      console.error("Error uploading logo:", error);
-      toast.error("Erreur lors de l'upload du logo");
+      console.error("Error in submit:", error);
+      toast.error(error.message || "Erreur lors de la mise à jour");
+    } finally {
       setUploading(false);
     }
   };

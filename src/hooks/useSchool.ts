@@ -28,10 +28,16 @@ export const useSchool = () => {
   const { data: school, isLoading, error } = useQuery({
     queryKey: ["school"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user?.id) {
+        throw new Error("Non authentifié");
+      }
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("school_id")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (!profile?.school_id) {
@@ -57,19 +63,27 @@ export const useSchool = () => {
 
       const { data, error } = await supabase
         .from("schools")
-        .update(updates)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", school.id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Update error:", error);
+        throw error;
+      }
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["school"] });
+      queryClient.setQueryData(["school"], data);
       toast.success("École mise à jour avec succès");
     },
     onError: (error: any) => {
+      console.error("Error updating school:", error);
       toast.error(error.message || "Erreur lors de la mise à jour");
     },
   });
