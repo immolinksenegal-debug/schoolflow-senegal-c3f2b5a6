@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
-  Home, Users, BookOpen, Settings, BarChart3, GraduationCap,
+  Home, Users, BookOpen, Settings, BarChart3,
   FileText, DollarSign, AlertCircle, Receipt, TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import eduKashLogo from "@/assets/edukash-logo.png";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -44,14 +45,12 @@ const Navigation = () => {
     <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary shadow-sm">
-              <GraduationCap className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">SchoolLink</h1>
-              <p className="text-xs text-muted-foreground">Sénégal</p>
-            </div>
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <img 
+              src={eduKashLogo} 
+              alt="EduKash" 
+              className="h-12 w-auto object-contain"
+            />
           </Link>
 
           <div className="hidden lg:flex items-center gap-1">

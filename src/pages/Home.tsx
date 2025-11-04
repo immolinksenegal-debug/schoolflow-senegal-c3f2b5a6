@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, GraduationCap, School, Users, TrendingUp, Shield, LogIn } from "lucide-react";
+import { ArrowRight, CheckCircle2, Users, TrendingUp, Shield, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
 import bannerImage from "@/assets/school-payment-banner.jpg";
+import eduKashLogo from "@/assets/edukash-logo.png";
 
 const Home = () => {
   const features = [
@@ -14,7 +15,6 @@ const Home = () => {
   ];
 
   const stats = [
-    { icon: School, value: "500+", label: "Écoles actives" },
     { icon: Users, value: "50K+", label: "Élèves gérés" },
     { icon: TrendingUp, value: "99%", label: "Satisfaction" },
     { icon: Shield, value: "100%", label: "Sécurisé" },
@@ -25,10 +25,11 @@ const Home = () => {
       {/* Header avec bouton de connexion */}
       <header className="absolute top-0 left-0 right-0 z-20 bg-transparent">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 text-white">
-            <School className="h-6 w-6" />
-            <span className="font-bold text-xl">SchoolLink</span>
-          </div>
+          <img 
+            src={eduKashLogo} 
+            alt="EduKash" 
+            className="h-10 w-auto object-contain brightness-0 invert"
+          />
           <Link to="/auth">
             <Button variant="secondary" className="gap-2">
               <LogIn className="h-4 w-4" />
@@ -53,19 +54,19 @@ const Home = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 w-full">
             <div className="flex-1 text-center md:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium mb-4">
-                <GraduationCap className="h-4 w-4" />
-                Solution Multi-Établissements
+                <Shield className="h-4 w-4" />
+                Gestion Scolaire et Paiements
               </div>
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                Une plateforme pour toutes vos écoles
+                Simplifiez la gestion de votre établissement
               </h2>
               <p className="text-lg text-white/90 max-w-2xl">
-                SchoolLink permet de gérer plusieurs établissements depuis une seule interface. 
+                EduKash permet de gérer inscriptions, paiements et finances en toute simplicité. 
                 Centralisez vos données, optimisez vos processus et gagnez en efficacité.
               </p>
             </div>
             
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {stats.map((stat, index) => (
                 <div 
                   key={index}
@@ -85,18 +86,18 @@ const Home = () => {
       <section className="container mx-auto px-4 py-20 md:py-32">
         <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
-            <GraduationCap className="h-4 w-4" />
+            <Shield className="h-4 w-4" />
             Gestion scolaire intelligente
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight">
             Digitalisez votre établissement avec
-            <span className="bg-gradient-accent bg-clip-text text-transparent"> SchoolLink</span>
+            <span className="bg-gradient-accent bg-clip-text text-transparent"> EduKash</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             La solution complète et moderne pour gérer les inscriptions, les paiements, 
-            les retards et tous les aspects administratifs de votre école.
+            les retards et tous les aspects administratifs et financiers de votre établissement.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -151,7 +152,7 @@ const Home = () => {
             Prêt à transformer votre gestion scolaire ?
           </h2>
           <p className="text-primary-foreground/90 text-lg mb-8 max-w-2xl mx-auto">
-            Rejoignez les établissements qui font confiance à SchoolLink pour moderniser 
+            Rejoignez les établissements qui font confiance à EduKash pour moderniser 
             leur administration et gagner en efficacité.
           </p>
           <Link to="/auth">
