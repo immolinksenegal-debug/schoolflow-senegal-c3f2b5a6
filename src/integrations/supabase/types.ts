@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      classes: {
+        Row: {
+          capacity: number
+          created_at: string
+          id: string
+          level: string
+          name: string
+          room_number: string | null
+          schedule: string | null
+          school_id: string
+          teacher_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          level: string
+          name: string
+          room_number?: string | null
+          schedule?: string | null
+          school_id: string
+          teacher_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          level?: string
+          name?: string
+          room_number?: string | null
+          schedule?: string | null
+          school_id?: string
+          teacher_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
