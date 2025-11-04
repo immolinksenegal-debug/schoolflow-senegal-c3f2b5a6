@@ -226,6 +226,30 @@ export const useEnrollments = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
+      // Get enrollment details
+      const { data: enrollment, error: enrollmentError } = await supabase
+        .from("enrollments")
+        .select("*, students(*)")
+        .eq("id", id)
+        .single();
+
+      if (enrollmentError) throw enrollmentError;
+      if (!enrollment) throw new Error("Inscription non trouvée");
+
+      // Get class details to know the total amount
+      const { data: classData, error: classError } = await supabase
+        .from("classes")
+        .select("registration_fee")
+        .eq("school_id", profile?.school_id)
+        .eq("name", enrollment.requested_class)
+        .maybeSingle();
+
+      if (classError) throw classError;
+
+      const currentYear = new Date().getFullYear();
+      const academicYear = `${currentYear}-${currentYear + 1}`;
+
+      // Update enrollment status
       const { data, error } = await supabase
         .from("enrollments")
         .update({
@@ -250,12 +274,71 @@ export const useEnrollments = () => {
           .eq("id", data.student_id);
       }
 
-      return data;
+      // Generate payment if enrollment_fee was paid
+      if (enrollment.enrollment_fee && enrollment.enrollment_fee > 0 && enrollment.payment_status !== 'pending') {
+        // Generate receipt number
+        const { data: receiptData, error: receiptError } = await supabase
+          .rpc('generate_receipt_number', { p_school_id: profile?.school_id });
+
+        if (receiptError) {
+          console.error("Error generating receipt:", receiptError);
+          throw receiptError;
+        }
+
+        // Create payment record
+        const { error: paymentError } = await supabase
+          .from("payments")
+          .insert({
+            school_id: profile?.school_id,
+            student_id: data.student_id,
+            amount: enrollment.enrollment_fee,
+            payment_method: 'cash',
+            payment_type: 'registration',
+            payment_date: new Date().toISOString().split('T')[0],
+            academic_year: academicYear,
+            receipt_number: receiptData,
+            created_by: user.id,
+            notes: `Paiement d'inscription - ${enrollment.enrollment_type === 'new' ? 'Nouvelle inscription' : 'Réinscription'}`,
+          });
+
+        if (paymentError) {
+          console.error("Error creating payment:", paymentError);
+          throw paymentError;
+        }
+      }
+
+      // Calculate remaining amount
+      const totalAmount = classData?.registration_fee || 0;
+      const amountPaid = enrollment.enrollment_fee || 0;
+      const remaining = totalAmount - amountPaid;
+
+      return {
+        ...data,
+        payment_info: {
+          amount_paid: amountPaid,
+          total_amount: totalAmount,
+          remaining: remaining > 0 ? remaining : 0,
+        }
+      };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });
       queryClient.invalidateQueries({ queryKey: ["students"] });
-      toast.success("Inscription approuvée");
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      
+      const paymentInfo = data.payment_info;
+      if (paymentInfo) {
+        if (paymentInfo.amount_paid > 0) {
+          toast.success(
+            `Inscription approuvée et reçu généré!\nMontant payé: ${paymentInfo.amount_paid.toLocaleString()} FCFA\nRestant: ${paymentInfo.remaining.toLocaleString()} FCFA`,
+            { duration: 6000 }
+          );
+        } else {
+          toast.success("Inscription approuvée");
+        }
+      } else {
+        toast.success("Inscription approuvée");
+      }
     },
     onError: (error: any) => {
       console.error("Error approving enrollment:", error);

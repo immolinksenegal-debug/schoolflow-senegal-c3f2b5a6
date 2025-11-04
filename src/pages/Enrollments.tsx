@@ -23,6 +23,7 @@ import {
 import StatCard from "@/components/StatCard";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import { EnrollmentForm } from "@/components/enrollments/EnrollmentForm";
+import { EnrollmentApprovalDialog } from "@/components/enrollments/EnrollmentApprovalDialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -31,6 +32,8 @@ const Enrollments = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewEnrollmentOpen, setIsNewEnrollmentOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [approvalData, setApprovalData] = useState<any>(null);
 
   const newEnrollments = enrollments.filter(e => e.enrollment_type === 'new');
   const reEnrollments = enrollments.filter(e => e.enrollment_type === 're-enrollment');
@@ -72,8 +75,24 @@ const Enrollments = () => {
     });
   };
 
-  const handleApprove = (id: string) => {
-    approveEnrollment.mutate(id);
+  const handleApprove = (enrollmentId: string) => {
+    const enrollment = enrollments.find(e => e.id === enrollmentId);
+    if (!enrollment) return;
+
+    approveEnrollment.mutate(enrollmentId, {
+      onSuccess: (data: any) => {
+        if (data.payment_info) {
+          setApprovalData({
+            student_name: enrollment.students?.full_name || "Élève",
+            requested_class: enrollment.requested_class,
+            amount_paid: data.payment_info.amount_paid,
+            total_amount: data.payment_info.total_amount,
+            remaining: data.payment_info.remaining,
+          });
+          setApprovalDialogOpen(true);
+        }
+      },
+    });
   };
 
   const filteredNewEnrollments = newEnrollments.filter(e => {
@@ -303,6 +322,12 @@ const Enrollments = () => {
         onOpenChange={setIsNewEnrollmentOpen}
         onSubmit={handleCreateEnrollment}
         loading={createEnrollment.isPending}
+      />
+
+      <EnrollmentApprovalDialog
+        open={approvalDialogOpen}
+        onOpenChange={setApprovalDialogOpen}
+        enrollmentData={approvalData}
       />
     </div>
   );
