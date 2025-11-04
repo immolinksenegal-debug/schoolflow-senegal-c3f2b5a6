@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Users, BookOpen, Pencil, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Users, BookOpen, Pencil, Trash2, UserCog, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const Classes = () => {
+  const navigate = useNavigate();
   const { classes, isLoading, createClass, updateClass, deleteClass } = useClasses();
   const { students } = useStudents();
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
@@ -234,24 +236,46 @@ const Classes = () => {
                             style={{ width: `${Math.min(occupancyRate, 100)}%` }}
                           />
                         </div>
-                        <div className="flex gap-2 pt-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => handleEdit(classItem)}
-                          >
-                            <Pencil className="h-4 w-4 mr-1" />
-                            Modifier
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => handleDeleteClick(classItem.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div className="space-y-2 pt-2">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="flex-1 bg-primary hover:bg-primary/90"
+                              onClick={() => navigate(`/students?class=${encodeURIComponent(classItem.name)}`)}
+                            >
+                              <UserCog className="h-4 w-4 mr-1" />
+                              Liste des élèves
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="flex-1 bg-gradient-primary hover:opacity-90"
+                              onClick={() => navigate(`/payments?class=${encodeURIComponent(classItem.name)}`)}
+                            >
+                              <DollarSign className="h-4 w-4 mr-1" />
+                              Paiements
+                            </Button>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => handleEdit(classItem)}
+                            >
+                              <Pencil className="h-4 w-4 mr-1" />
+                              Modifier
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteClick(classItem.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
