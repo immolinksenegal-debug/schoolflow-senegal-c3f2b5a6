@@ -14,6 +14,7 @@ export interface Class {
   schedule?: string;
   registration_fee?: number;
   monthly_tuition?: number;
+  annual_tuition?: number;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +28,7 @@ export interface CreateClassData {
   schedule?: string;
   registration_fee?: number;
   monthly_tuition?: number;
+  annual_tuition?: number;
 }
 
 export interface UpdateClassData extends Partial<CreateClassData> {}

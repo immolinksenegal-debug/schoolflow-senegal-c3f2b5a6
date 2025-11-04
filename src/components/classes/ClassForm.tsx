@@ -18,6 +18,7 @@ const classSchema = z.object({
   schedule: z.string().max(500).optional(),
   registration_fee: z.number().min(0, "Le montant doit être positif").optional(),
   monthly_tuition: z.number().min(0, "Le montant doit être positif").optional(),
+  annual_tuition: z.number().min(0, "Le montant doit être positif").optional(),
 });
 
 type ClassFormData = z.infer<typeof classSchema>;
@@ -57,6 +58,7 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
       schedule: classData?.schedule || "",
       registration_fee: classData?.registration_fee || 0,
       monthly_tuition: classData?.monthly_tuition || 0,
+      annual_tuition: classData?.annual_tuition || 0,
     },
   });
 
@@ -150,7 +152,7 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
               <FormField
                 control={form.control}
                 name="registration_fee"
@@ -180,6 +182,25 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
                       <Input
                         type="number"
                         placeholder="25000"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="annual_tuition"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Scolarité annuelle (FCFA)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="300000"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       />
