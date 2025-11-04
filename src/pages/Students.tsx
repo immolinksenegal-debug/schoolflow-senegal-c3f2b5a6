@@ -49,6 +49,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useStudents, Student } from "@/hooks/useStudents";
 import { StudentForm } from "@/components/students/StudentForm";
 import { useSchool } from "@/hooks/useSchool";
+import { useClasses } from "@/hooks/useClasses";
+import { usePayments } from "@/hooks/usePayments";
 
 const Students = () => {
   const [searchParams] = useSearchParams();
