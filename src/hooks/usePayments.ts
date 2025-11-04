@@ -81,6 +81,9 @@ export const usePayments = () => {
 
       const currentMonth = new Date().getMonth() + 1;
       const currentYear = new Date().getFullYear();
+      
+      // Get last day of current month
+      const lastDay = new Date(currentYear, currentMonth, 0).getDate();
 
       // Total encaissements du mois
       const { data: monthPayments } = await supabase
@@ -88,7 +91,7 @@ export const usePayments = () => {
         .select("amount")
         .eq("school_id", profile.school_id)
         .gte("payment_date", `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`)
-        .lte("payment_date", `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`);
+        .lte("payment_date", `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`);
 
       const monthlyTotal = monthPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
