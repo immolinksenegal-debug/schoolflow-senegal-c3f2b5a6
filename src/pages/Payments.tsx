@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DollarSign, Plus, Search, Download, Receipt, Pencil, Trash2 } from "lucide-react";
+import { useSchool } from "@/hooks/useSchool";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,11 +33,13 @@ import {
 import StatCard from "@/components/StatCard";
 import { usePayments, CreatePaymentData, Payment } from "@/hooks/usePayments";
 import { PaymentForm } from "@/components/payments/PaymentForm";
+import { PaymentReceipt } from "@/components/payments/PaymentReceipt";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const Payments = () => {
   const { payments, stats, isLoading, createPayment, updatePayment, deletePayment } = usePayments();
+  const { school } = useSchool();
   const [searchQuery, setSearchQuery] = useState("");
   const [methodFilter, setMethodFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -44,6 +47,8 @@ const Payments = () => {
   const [editingPayment, setEditingPayment] = useState<Payment | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [paymentToDelete, setPaymentToDelete] = useState<string | null>(null);
+  const [receiptOpen, setReceiptOpen] = useState(false);
+  const [currentReceipt, setCurrentReceipt] = useState<Payment | null>(null);
 
   const statsData = [
     { 
@@ -104,8 +109,10 @@ const Payments = () => {
 
   const handleCreatePayment = (data: CreatePaymentData) => {
     createPayment.mutate(data, {
-      onSuccess: () => {
+      onSuccess: (newPayment) => {
         setIsFormOpen(false);
+        setCurrentReceipt(newPayment as Payment);
+        setReceiptOpen(true);
       },
     });
   };
@@ -329,6 +336,19 @@ const Payments = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PaymentReceipt
+        open={receiptOpen}
+        onOpenChange={setReceiptOpen}
+        payment={currentReceipt}
+        schoolInfo={{
+          name: school?.name || "",
+          address: school?.address,
+          phone: school?.phone,
+          email: school?.email,
+          logo_url: school?.logo_url,
+        }}
+      />
     </div>
   );
 };
