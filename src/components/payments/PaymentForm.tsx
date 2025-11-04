@@ -52,6 +52,21 @@ const PAYMENT_TYPES = [
   { value: 'other', label: 'Autre' },
 ];
 
+const MONTHS = [
+  { value: 'Janvier', label: 'Janvier' },
+  { value: 'Février', label: 'Février' },
+  { value: 'Mars', label: 'Mars' },
+  { value: 'Avril', label: 'Avril' },
+  { value: 'Mai', label: 'Mai' },
+  { value: 'Juin', label: 'Juin' },
+  { value: 'Juillet', label: 'Juillet' },
+  { value: 'Août', label: 'Août' },
+  { value: 'Septembre', label: 'Septembre' },
+  { value: 'Octobre', label: 'Octobre' },
+  { value: 'Novembre', label: 'Novembre' },
+  { value: 'Décembre', label: 'Décembre' },
+];
+
 export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading }: PaymentFormProps) => {
   const { students } = useStudents();
   const { classes } = useClasses();
@@ -297,9 +312,20 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Période concernée</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Janvier 2025, 1er Trimestre 2024-2025" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un mois" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {MONTHS.map((month) => (
+                        <SelectItem key={month.value} value={month.value}>
+                          {month.label} {new Date().getFullYear()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
