@@ -103,7 +103,34 @@ export const useEnrollments = () => {
       if (enrollmentData.student_data && enrollmentData.enrollment_type === 'new') {
         const { student_data, ...enrollment } = enrollmentData;
         
-        // Generate matricule
+        // Check for duplicate email or phone
+        if (student_data.email && student_data.email !== '') {
+          const { data: existingEmail } = await supabase
+            .from("students")
+            .select("id, full_name")
+            .eq("school_id", profile.school_id)
+            .eq("email", student_data.email)
+            .maybeSingle();
+
+          if (existingEmail) {
+            throw new Error(`L'email ${student_data.email} est déjà utilisé par ${existingEmail.full_name}`);
+          }
+        }
+
+        if (student_data.phone && student_data.phone !== '') {
+          const { data: existingPhone } = await supabase
+            .from("students")
+            .select("id, full_name")
+            .eq("school_id", profile.school_id)
+            .eq("phone", student_data.phone)
+            .maybeSingle();
+
+          if (existingPhone) {
+            throw new Error(`Le téléphone ${student_data.phone} est déjà utilisé par ${existingPhone.full_name}`);
+          }
+        }
+        
+        // Generate unique matricule
         const matricule = `STD${Date.now()}`;
 
         // Create student first
@@ -119,7 +146,16 @@ export const useEnrollments = () => {
           .select()
           .single();
 
-        if (studentError) throw studentError;
+        if (studentError) {
+          // Handle unique constraint violations with friendly messages
+          if (studentError.message.includes('students_email_unique')) {
+            throw new Error(`Cet email est déjà utilisé par un autre élève`);
+          }
+          if (studentError.message.includes('students_phone_unique')) {
+            throw new Error(`Ce numéro de téléphone est déjà utilisé par un autre élève`);
+          }
+          throw studentError;
+        }
 
         // Then create enrollment
         const { data, error } = await supabase
