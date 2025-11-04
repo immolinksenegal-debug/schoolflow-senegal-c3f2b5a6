@@ -34,24 +34,26 @@ export const useSchool = () => {
         throw new Error("Non authentifié");
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("school_id")
         .eq("user_id", user.id)
         .maybeSingle();
 
+      if (profileError) throw profileError;
+      
       if (!profile?.school_id) {
-        throw new Error("Aucune école associée à votre profil");
+        return null;
       }
 
-      const { data, error } = await supabase
+      const { data, error: schoolError } = await supabase
         .from("schools")
         .select("*")
         .eq("id", profile.school_id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data as School;
+      if (schoolError) throw schoolError;
+      return data as School | null;
     },
   });
 
@@ -69,12 +71,17 @@ export const useSchool = () => {
         })
         .eq("id", school.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Update error:", error);
         throw error;
       }
+      
+      if (!data) {
+        throw new Error("École non trouvée");
+      }
+      
       return data;
     },
     onSuccess: (data) => {

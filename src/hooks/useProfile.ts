@@ -35,10 +35,10 @@ export const useProfile = () => {
         .from("profiles")
         .select("*")
         .eq("user_id", user.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      return data as Profile;
+      return data as Profile | null;
     },
   });
 
@@ -66,12 +66,17 @@ export const useProfile = () => {
         })
         .eq("user_id", user.user.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Update error:", error);
         throw error;
       }
+      
+      if (!data) {
+        throw new Error("Profil non trouvé");
+      }
+      
       return data;
     },
     onSuccess: (data) => {

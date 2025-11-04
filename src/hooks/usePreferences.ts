@@ -77,9 +77,14 @@ export const usePreferences = () => {
         .update(updates)
         .eq("user_id", user.user.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      
+      if (!data) {
+        throw new Error("Préférences non trouvées");
+      }
+      
       return data;
     },
     onSuccess: () => {
