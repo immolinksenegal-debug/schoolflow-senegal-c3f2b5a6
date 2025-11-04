@@ -16,6 +16,8 @@ const classSchema = z.object({
   teacher_name: z.string().max(100).optional(),
   room_number: z.string().max(50).optional(),
   schedule: z.string().max(500).optional(),
+  registration_fee: z.number().min(0, "Le montant doit être positif").optional(),
+  monthly_tuition: z.number().min(0, "Le montant doit être positif").optional(),
 });
 
 type ClassFormData = z.infer<typeof classSchema>;
@@ -53,6 +55,8 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
       teacher_name: classData?.teacher_name || "",
       room_number: classData?.room_number || "",
       schedule: classData?.schedule || "",
+      registration_fee: classData?.registration_fee || 0,
+      monthly_tuition: classData?.monthly_tuition || 0,
     },
   });
 
@@ -139,6 +143,46 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
                     <FormLabel>Salle</FormLabel>
                     <FormControl>
                       <Input placeholder="A101" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="registration_fee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Frais d'inscription (FCFA)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="50000"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="monthly_tuition"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Scolarité mensuelle (FCFA)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="25000"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

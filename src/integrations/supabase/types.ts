@@ -20,7 +20,9 @@ export type Database = {
           created_at: string
           id: string
           level: string
+          monthly_tuition: number | null
           name: string
+          registration_fee: number | null
           room_number: string | null
           schedule: string | null
           school_id: string
@@ -32,7 +34,9 @@ export type Database = {
           created_at?: string
           id?: string
           level: string
+          monthly_tuition?: number | null
           name: string
+          registration_fee?: number | null
           room_number?: string | null
           schedule?: string | null
           school_id: string
@@ -44,7 +48,9 @@ export type Database = {
           created_at?: string
           id?: string
           level?: string
+          monthly_tuition?: number | null
           name?: string
+          registration_fee?: number | null
           room_number?: string | null
           schedule?: string | null
           school_id?: string

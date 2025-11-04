@@ -12,6 +12,8 @@ export interface Class {
   teacher_name?: string;
   room_number?: string;
   schedule?: string;
+  registration_fee?: number;
+  monthly_tuition?: number;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +25,8 @@ export interface CreateClassData {
   teacher_name?: string;
   room_number?: string;
   schedule?: string;
+  registration_fee?: number;
+  monthly_tuition?: number;
 }
 
 export interface UpdateClassData extends Partial<CreateClassData> {}
