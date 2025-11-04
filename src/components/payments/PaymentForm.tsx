@@ -85,7 +85,18 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
       transaction_reference: paymentData?.transaction_reference || "",
       notes: paymentData?.notes || "",
     },
-  });
+    });
+
+  // Auto-fill amount when student is selected
+  const handleStudentChange = (studentId: string) => {
+    const student = students.find(s => s.id === studentId);
+    if (student) {
+      const studentClass = classes.find(c => c.name === student.class);
+      if (studentClass?.monthly_tuition) {
+        form.setValue('amount', studentClass.monthly_tuition);
+      }
+    }
+  };
 
   const handleSubmit = (data: PaymentFormData) => {
     onSubmit(data);
@@ -188,7 +199,10 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
                 <FormItem>
                   <FormLabel>Élève *</FormLabel>
                   <Select 
-                    onValueChange={field.onChange} 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      handleStudentChange(value);
+                    }}
                     defaultValue={field.value}
                     disabled={!selectedClass}
                   >
