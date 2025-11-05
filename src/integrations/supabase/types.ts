@@ -233,6 +233,138 @@ export type Database = {
           },
         ]
       }
+      reminder_configurations: {
+        Row: {
+          channels: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          message_template: string
+          reminder_type: string
+          school_id: string
+          send_to_parent: boolean
+          trigger_days: number
+          updated_at: string
+        }
+        Insert: {
+          channels?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message_template: string
+          reminder_type: string
+          school_id: string
+          send_to_parent?: boolean
+          trigger_days: number
+          updated_at?: string
+        }
+        Update: {
+          channels?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message_template?: string
+          reminder_type?: string
+          school_id?: string
+          send_to_parent?: boolean
+          trigger_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reminder_history: {
+        Row: {
+          channels: Json
+          created_at: string
+          error_message: string | null
+          id: string
+          message: string
+          reminder_type: string
+          school_id: string
+          sent_at: string
+          sent_by: string | null
+          status: string
+          student_id: string
+        }
+        Insert: {
+          channels: Json
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message: string
+          reminder_type: string
+          school_id: string
+          sent_at?: string
+          sent_by?: string | null
+          status: string
+          student_id: string
+        }
+        Update: {
+          channels?: Json
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message?: string
+          reminder_type?: string
+          school_id?: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
+      scheduled_reminders: {
+        Row: {
+          channels: Json
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          message: string
+          scheduled_date: string
+          scheduled_time: string | null
+          school_id: string
+          send_to_parent: boolean
+          sent_at: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          channels?: Json
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          message: string
+          scheduled_date: string
+          scheduled_time?: string | null
+          school_id: string
+          send_to_parent?: boolean
+          sent_at?: string | null
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          channels?: Json
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          message?: string
+          scheduled_date?: string
+          scheduled_time?: string | null
+          school_id?: string
+          send_to_parent?: boolean
+          sent_at?: string | null
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       schools: {
         Row: {
           address: string | null
