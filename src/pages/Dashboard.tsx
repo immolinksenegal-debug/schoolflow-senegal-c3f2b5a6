@@ -193,9 +193,9 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-green-200/50 dark:border-green-800/50 space-y-2 hover:shadow-md transition-shadow">
+              <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-red-200/50 dark:border-red-800/50 space-y-2 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
                     3
                   </div>
                   <div className="space-y-1">
@@ -210,9 +210,9 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50 mt-4">
+            <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-red-200/50 dark:border-red-800/50 mt-4">
               <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <h4 className="font-semibold text-foreground text-sm">
                     Réinscriptions annuelles
