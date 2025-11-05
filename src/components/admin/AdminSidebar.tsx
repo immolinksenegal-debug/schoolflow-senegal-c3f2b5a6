@@ -7,7 +7,8 @@ import {
   Settings,
   Shield,
   Database,
-  CreditCard
+  CreditCard,
+  Wallet
 } from "lucide-react";
 import {
   Sidebar,
@@ -27,6 +28,7 @@ const menuItems = [
   { title: "Établissements", url: "/admin/schools", icon: School },
   { title: "Utilisateurs", url: "/admin/users", icon: UserCog },
   { title: "Abonnements", url: "/admin/subscriptions", icon: CreditCard },
+  { title: "Paytech", url: "/admin/paytech", icon: Wallet },
   { title: "Rapports", url: "/admin/reports", icon: BarChart3 },
   { title: "Base de données", url: "/admin/database", icon: Database },
   { title: "Paramètres", url: "/admin/settings", icon: Settings },

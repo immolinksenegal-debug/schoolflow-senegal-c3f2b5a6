@@ -248,6 +248,48 @@ export type Database = {
           },
         ]
       }
+      paytech_settings: {
+        Row: {
+          api_key: string | null
+          api_url: string | null
+          cancel_url: string | null
+          created_at: string | null
+          currency: string | null
+          env: string | null
+          id: string
+          ipn_url: string | null
+          secret_key: string | null
+          success_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          api_url?: string | null
+          cancel_url?: string | null
+          created_at?: string | null
+          currency?: string | null
+          env?: string | null
+          id?: string
+          ipn_url?: string | null
+          secret_key?: string | null
+          success_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          api_url?: string | null
+          cancel_url?: string | null
+          created_at?: string | null
+          currency?: string | null
+          env?: string | null
+          id?: string
+          ipn_url?: string | null
+          secret_key?: string | null
+          success_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
