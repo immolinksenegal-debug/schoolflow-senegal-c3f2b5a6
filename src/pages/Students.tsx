@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, UserPlus, Download, Eye, Edit, Trash2, MoreHorizontal, Printer, DollarSign, FileText, CreditCard } from "lucide-react";
+import { Search, UserPlus, Download, Eye, Edit, Trash2, MoreHorizontal, Printer, DollarSign, FileText, CreditCard, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -51,6 +51,8 @@ import { StudentForm } from "@/components/students/StudentForm";
 import { useSchool } from "@/hooks/useSchool";
 import { useClasses } from "@/hooks/useClasses";
 import { usePayments } from "@/hooks/usePayments";
+import { PaymentForm } from "@/components/payments/PaymentForm";
+import { PaymentReceipt } from "@/components/payments/PaymentReceipt";
 
 const Students = () => {
   const [searchParams] = useSearchParams();
@@ -63,11 +65,14 @@ const Students = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [payingStudent, setPayingStudent] = useState<Student | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [lastPayment, setLastPayment] = useState<any>(null);
 
   const { students, isLoading, createStudent, updateStudent, deleteStudent } = useStudents();
   const { school } = useSchool();
   const { classes } = useClasses();
-  const { payments } = usePayments();
+  const { payments, createPayment } = usePayments();
 
   useEffect(() => {
     if (classParam) {
@@ -135,6 +140,16 @@ const Students = () => {
 
   const handlePrintList = () => {
     window.print();
+  };
+
+  const handlePayment = (data: any) => {
+    createPayment.mutate(data, {
+      onSuccess: (payment) => {
+        setPayingStudent(null);
+        setLastPayment(payment);
+        setShowReceipt(true);
+      },
+    });
   };
 
   // Calculate financial info for selected student
@@ -401,6 +416,14 @@ const Students = () => {
                                 <Eye className="mr-2 h-4 w-4" />
                                 Voir le profil
                               </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => setPayingStudent(student)}
+                                className="text-green-600 font-medium"
+                              >
+                                <Wallet className="mr-2 h-4 w-4" />
+                                Procéder au paiement
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => setEditingStudent(student)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Modifier
@@ -617,6 +640,47 @@ const Students = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Dialog pour procéder au paiement */}
+        {payingStudent && (
+          <PaymentForm
+            open={!!payingStudent}
+            onOpenChange={() => setPayingStudent(null)}
+            onSubmit={handlePayment}
+            loading={createPayment.isPending}
+            paymentData={{
+              student_id: payingStudent.id,
+              amount: classes.find(c => c.name === payingStudent.class)?.monthly_tuition || 0,
+              payment_method: 'cash',
+              payment_type: 'tuition',
+              payment_date: new Date().toISOString().split('T')[0],
+              payment_period: '',
+              transaction_reference: '',
+              notes: '',
+              students: {
+                full_name: payingStudent.full_name,
+                matricule: payingStudent.matricule,
+                class: payingStudent.class,
+              },
+            } as any}
+          />
+        )}
+
+        {/* Reçu de paiement */}
+        {lastPayment && (
+          <PaymentReceipt
+            open={showReceipt}
+            onOpenChange={setShowReceipt}
+            payment={lastPayment}
+            schoolInfo={{
+              name: school?.name || '',
+              address: school?.address || '',
+              phone: school?.phone || '',
+              email: school?.email || '',
+              logo_url: school?.logo_url || '',
+            }}
+          />
+        )}
 
         {/* Confirmation de suppression */}
         <AlertDialog open={!!studentToDelete} onOpenChange={() => setStudentToDelete(null)}>
