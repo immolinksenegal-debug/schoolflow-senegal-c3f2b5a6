@@ -74,8 +74,37 @@ const Enrollments = () => {
 
   const handleCreateEnrollment = (data: any) => {
     createEnrollment.mutate(data, {
-      onSuccess: () => {
+      onSuccess: (newEnrollment) => {
         setIsNewEnrollmentOpen(false);
+        
+        // Approuver automatiquement l'inscription et générer le reçu
+        approveEnrollment.mutate(newEnrollment.id, {
+          onSuccess: (approvalData: any) => {
+            if (approvalData.payment_info) {
+              setApprovalData({
+                student_name: approvalData.students?.full_name || "Élève",
+                requested_class: approvalData.requested_class,
+                amount_paid: approvalData.payment_info.amount_paid,
+                total_amount: approvalData.payment_info.total_amount,
+                remaining: approvalData.payment_info.remaining,
+              });
+              setApprovalDialogOpen(true);
+              
+              // Ouvrir automatiquement le reçu pour impression si un paiement a été créé
+              if (approvalData.created_payment) {
+                setReceiptPayment(approvalData.created_payment);
+                // Délai pour laisser le temps au dialog d'approbation de se fermer
+                setTimeout(() => {
+                  setReceiptDialogOpen(true);
+                  // Déclencher l'impression automatique après un court délai
+                  setTimeout(() => {
+                    window.print();
+                  }, 500);
+                }, 1500);
+              }
+            }
+          },
+        });
       },
     });
   };
