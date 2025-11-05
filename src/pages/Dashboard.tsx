@@ -6,15 +6,27 @@ import { useStudents } from "@/hooks/useStudents";
 import { usePayments } from "@/hooks/usePayments";
 import { useClasses } from "@/hooks/useClasses";
 import { useEnrollments } from "@/hooks/useEnrollments";
+import { useUserRole } from "@/hooks/useUserRole";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { isSuperAdmin, isLoading: rolesLoading } = useUserRole();
   const { students } = useStudents();
   const { payments } = usePayments();
   const { classes } = useClasses();
   const { enrollments } = useEnrollments();
+
+  // Rediriger les super_admin vers /admin
+  useEffect(() => {
+    if (!rolesLoading && isSuperAdmin) {
+      console.log("Super admin détecté, redirection vers /admin");
+      navigate("/admin", { replace: true });
+    }
+  }, [isSuperAdmin, rolesLoading, navigate]);
 
   // Calculer les statistiques réelles
   const stats = useMemo(() => {
