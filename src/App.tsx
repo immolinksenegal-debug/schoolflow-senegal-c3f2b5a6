@@ -25,7 +25,8 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const location = useLocation();
   const publicRoutes = ["/", "/auth"];
-  const showNavigation = !publicRoutes.includes(location.pathname);
+  const adminRoutes = location.pathname.startsWith("/admin");
+  const showNavigation = !publicRoutes.includes(location.pathname) && !adminRoutes;
 
   return (
     <>
@@ -44,7 +45,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/admin"
+          path="/admin/*"
           element={
             <ProtectedRoute>
               <Admin />
