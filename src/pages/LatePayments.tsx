@@ -132,76 +132,148 @@ const LatePayments = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Zone d'impression cachée */}
+      {/* Zone d'impression cachée avec design moderne */}
       <div className="hidden print:block print-area">
-        <div className="p-8">
-          <div className="text-center mb-8 border-b-2 border-primary pb-6">
-            {school?.logo_url && (
-              <img src={school.logo_url} alt={school.name} className="h-20 mx-auto mb-4" />
-            )}
-            <h1 className="text-3xl font-bold text-primary mb-2">{school?.name || "École"}</h1>
-            {school?.address && <p className="text-sm text-muted-foreground">{school.address}</p>}
-            <div className="flex justify-center gap-4 text-sm text-muted-foreground mt-2">
-              {school?.phone && <span>Tél: {school.phone}</span>}
-              {school?.email && <span>Email: {school.email}</span>}
+        <div className="p-8 bg-white">
+          {/* En-tête avec gradient moderne */}
+          <div className="relative mb-8 pb-8 overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary via-primary/80 to-primary"></div>
+            
+            <div className="text-center pt-6">
+              {school?.logo_url && (
+                <div className="inline-block mb-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-primary/5 rounded-full blur-xl"></div>
+                    <img 
+                      src={school.logo_url} 
+                      alt={school.name} 
+                      className="h-24 mx-auto relative z-10" 
+                    />
+                  </div>
+                </div>
+              )}
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3">
+                {school?.name || "École"}
+              </h1>
+              {school?.address && (
+                <p className="text-sm text-gray-600 mb-2">{school.address}</p>
+              )}
+              <div className="flex justify-center gap-6 text-sm text-gray-600">
+                {school?.phone && (
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Tél:</span> {school.phone}
+                  </span>
+                )}
+                {school?.email && (
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">Email:</span> {school.email}
+                  </span>
+                )}
+              </div>
             </div>
+            
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"></div>
           </div>
           
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-foreground mb-2">
+          {/* Titre et informations du document */}
+          <div className="mb-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6 border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+              <div className="w-1 h-8 bg-gradient-to-b from-primary to-primary/60 rounded-full"></div>
               Liste des élèves en retard de paiement
             </h2>
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>
-                {classFilter === "all" 
-                  ? "Toutes les classes" 
-                  : `Classe: ${classFilter}`}
-              </span>
-              <span>Date: {format(new Date(), "dd/MM/yyyy", { locale: fr })}</span>
+            
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div className="bg-white rounded-md p-3 border border-gray-200">
+                <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Filtre</p>
+                <p className="font-semibold text-gray-800">
+                  {classFilter === "all" ? "Toutes les classes" : classFilter}
+                </p>
+              </div>
+              
+              <div className="bg-white rounded-md p-3 border border-gray-200">
+                <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Date d'édition</p>
+                <p className="font-semibold text-gray-800">
+                  {format(new Date(), "dd/MM/yyyy", { locale: fr })}
+                </p>
+              </div>
+              
+              <div className="bg-white rounded-md p-3 border border-gray-200">
+                <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Total élèves</p>
+                <p className="font-semibold text-gray-800">
+                  {filteredPayments.length} en retard
+                </p>
+              </div>
             </div>
-            <p className="text-sm font-semibold mt-2">
-              Total: {filteredPayments.length} élève{filteredPayments.length > 1 ? 's' : ''} en retard
-            </p>
           </div>
 
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b-2 border-primary">
-                <th className="text-left p-2 font-semibold">N°</th>
-                <th className="text-left p-2 font-semibold">Matricule</th>
-                <th className="text-left p-2 font-semibold">Nom & Prénom</th>
-                <th className="text-left p-2 font-semibold">Classe</th>
-                <th className="text-left p-2 font-semibold">Statut</th>
-                <th className="text-left p-2 font-semibold">Parent/Tuteur</th>
-                <th className="text-left p-2 font-semibold">Téléphone</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPayments.map((payment, index) => (
-                <tr key={payment.id} className="border-b border-border">
-                  <td className="p-2">{index + 1}</td>
-                  <td className="p-2 font-medium">{payment.matricule}</td>
-                  <td className="p-2 font-medium">{payment.student}</td>
-                  <td className="p-2">{payment.class}</td>
-                  <td className="p-2">
-                    {payment.payment_status === 'partial' ? 'Partiel' : 'En attente'}
-                  </td>
-                  <td className="p-2">{payment.parent_name}</td>
-                  <td className="p-2">{payment.parent_phone}</td>
+          {/* Tableau moderne */}
+          <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gradient-to-r from-gray-800 to-gray-700 text-white">
+                  <th className="text-left p-3 font-semibold text-sm">N°</th>
+                  <th className="text-left p-3 font-semibold text-sm">Matricule</th>
+                  <th className="text-left p-3 font-semibold text-sm">Nom & Prénom</th>
+                  <th className="text-left p-3 font-semibold text-sm">Classe</th>
+                  <th className="text-left p-3 font-semibold text-sm">Statut</th>
+                  <th className="text-left p-3 font-semibold text-sm">Parent/Tuteur</th>
+                  <th className="text-left p-3 font-semibold text-sm">Téléphone</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredPayments.map((payment, index) => (
+                  <tr 
+                    key={payment.id} 
+                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  >
+                    <td className="p-3 text-sm text-gray-600">{index + 1}</td>
+                    <td className="p-3 text-sm font-mono font-medium text-gray-800">{payment.matricule}</td>
+                    <td className="p-3 text-sm font-semibold text-gray-800">{payment.student}</td>
+                    <td className="p-3 text-sm">
+                      <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                        {payment.class}
+                      </span>
+                    </td>
+                    <td className="p-3 text-sm">
+                      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                        payment.payment_status === 'partial' 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {payment.payment_status === 'partial' ? 'Partiel' : 'En attente'}
+                      </span>
+                    </td>
+                    <td className="p-3 text-sm text-gray-700">{payment.parent_name}</td>
+                    <td className="p-3 text-sm font-medium text-gray-800">{payment.parent_phone}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-          <div className="mt-12 pt-6 border-t border-border">
+          {/* Pied de page moderne */}
+          <div className="mt-12 pt-8 border-t border-gray-200">
             <div className="flex justify-between items-end">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Date d'édition:</p>
-                <p className="font-medium">{format(new Date(), "dd MMMM yyyy", { locale: fr })}</p>
+              <div className="space-y-2">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Date d'édition</p>
+                <p className="font-semibold text-gray-800 text-lg">
+                  {format(new Date(), "dd MMMM yyyy", { locale: fr })}
+                </p>
               </div>
+              
               <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-1">Signature</p>
-                <div className="border-t border-foreground w-48 mt-12"></div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide mb-16">
+                  Signature et cachet
+                </p>
+                <div className="border-t-2 border-gray-400 w-56"></div>
+              </div>
+            </div>
+            
+            <div className="mt-8 text-center">
+              <div className="inline-block px-4 py-2 bg-gray-100 rounded-md">
+                <p className="text-xs text-gray-500">
+                  Document généré le {format(new Date(), "dd/MM/yyyy 'à' HH:mm", { locale: fr })}
+                </p>
               </div>
             </div>
           </div>
