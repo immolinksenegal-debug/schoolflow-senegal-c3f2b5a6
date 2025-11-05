@@ -20,6 +20,7 @@ import { SchoolsManagement } from "@/components/admin/SchoolsManagement";
 import { UsersManagement } from "@/components/admin/UsersManagement";
 import { ReportsPanel } from "@/components/admin/ReportsPanel";
 import { DatabaseManagement } from "@/components/admin/DatabaseManagement";
+import { SystemSettings } from "@/components/admin/SystemSettings";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -168,16 +169,7 @@ const Admin = () => {
               <Route path="users" element={<UsersManagement />} />
               <Route path="reports" element={<ReportsPanel />} />
               <Route path="database" element={<DatabaseManagement />} />
-              <Route path="settings" element={
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Paramètres système</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">Configuration de la plateforme</p>
-                  </CardContent>
-                </Card>
-              } />
+              <Route path="settings" element={<SystemSettings />} />
             </Routes>
           </main>
         </div>
