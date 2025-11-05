@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Upload } from "lucide-react";
+import { Upload, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import eduKashLogo from "@/assets/edukash-logo.png";
 
 const schoolSchema = z.object({
@@ -52,6 +52,8 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [emailCheckStatus, setEmailCheckStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [emailValue, setEmailValue] = useState("");
 
   const form = useForm<SchoolFormData>({
     resolver: zodResolver(schoolSchema),
@@ -75,6 +77,31 @@ const Onboarding = () => {
       navigate("/dashboard");
     }
   }, [school, authLoading, schoolLoading, navigate]);
+
+  // Email availability check with debounce
+  useEffect(() => {
+    const checkEmail = async () => {
+      if (!emailValue || emailValue.trim() === '') {
+        setEmailCheckStatus('idle');
+        return;
+      }
+
+      // Validate email format first
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailValue)) {
+        setEmailCheckStatus('idle');
+        return;
+      }
+
+      setEmailCheckStatus('checking');
+      
+      const exists = await checkEmailExists(emailValue.trim());
+      setEmailCheckStatus(exists ? 'taken' : 'available');
+    };
+
+    const timeoutId = setTimeout(checkEmail, 500);
+    return () => clearTimeout(timeoutId);
+  }, [emailValue]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -276,12 +303,41 @@ const Onboarding = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="contact@ecole.fr"
-                            {...field}
-                          />
+                          <div className="relative">
+                            <Input
+                              type="email"
+                              placeholder="contact@ecole.fr"
+                              {...field}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setEmailValue(e.target.value);
+                              }}
+                            />
+                            {emailValue && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                {emailCheckStatus === 'checking' && (
+                                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                )}
+                                {emailCheckStatus === 'available' && (
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                )}
+                                {emailCheckStatus === 'taken' && (
+                                  <XCircle className="h-4 w-4 text-destructive" />
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </FormControl>
+                        {emailCheckStatus === 'taken' && (
+                          <p className="text-sm text-destructive">
+                            Cet email est déjà utilisé
+                          </p>
+                        )}
+                        {emailCheckStatus === 'available' && (
+                          <p className="text-sm text-green-600">
+                            Email disponible
+                          </p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
