@@ -242,7 +242,8 @@ export const useEnrollments = () => {
         .select("registration_fee")
         .eq("school_id", profile?.school_id)
         .eq("name", enrollment.requested_class)
-        .maybeSingle();
+        .limit(1)
+        .single();
 
       if (classError) throw classError;
 
@@ -312,13 +313,38 @@ export const useEnrollments = () => {
       const amountPaid = enrollment.enrollment_fee || 0;
       const remaining = totalAmount - amountPaid;
 
+      // Get the created payment for printing
+      let createdPayment = null;
+      if (enrollment.enrollment_fee && enrollment.enrollment_fee > 0 && enrollment.payment_status !== 'pending') {
+        const { data: paymentData } = await supabase
+          .from("payments")
+          .select(`
+            *,
+            students (
+              full_name,
+              matricule,
+              class,
+              parent_name,
+              parent_phone
+            )
+          `)
+          .eq("student_id", data.student_id)
+          .eq("payment_type", "registration")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+        
+        createdPayment = paymentData;
+      }
+
       return {
         ...data,
         payment_info: {
           amount_paid: amountPaid,
           total_amount: totalAmount,
           remaining: remaining > 0 ? remaining : 0,
-        }
+        },
+        created_payment: createdPayment,
       };
     },
     onSuccess: (data) => {

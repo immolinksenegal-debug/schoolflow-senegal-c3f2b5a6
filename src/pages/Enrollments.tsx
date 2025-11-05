@@ -24,16 +24,21 @@ import StatCard from "@/components/StatCard";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import { EnrollmentForm } from "@/components/enrollments/EnrollmentForm";
 import { EnrollmentApprovalDialog } from "@/components/enrollments/EnrollmentApprovalDialog";
+import { PaymentReceipt } from "@/components/payments/PaymentReceipt";
+import { useSchool } from "@/hooks/useSchool";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const Enrollments = () => {
   const { enrollments, isLoading, createEnrollment, approveEnrollment } = useEnrollments();
+  const { school } = useSchool();
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewEnrollmentOpen, setIsNewEnrollmentOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [approvalData, setApprovalData] = useState<any>(null);
+  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
+  const [receiptPayment, setReceiptPayment] = useState<any>(null);
 
   const newEnrollments = enrollments.filter(e => e.enrollment_type === 'new');
   const reEnrollments = enrollments.filter(e => e.enrollment_type === 're-enrollment');
@@ -90,6 +95,19 @@ const Enrollments = () => {
             remaining: data.payment_info.remaining,
           });
           setApprovalDialogOpen(true);
+          
+          // Ouvrir automatiquement le reçu pour impression si un paiement a été créé
+          if (data.created_payment) {
+            setReceiptPayment(data.created_payment);
+            // Délai pour laisser le temps au dialog d'approbation de se fermer
+            setTimeout(() => {
+              setReceiptDialogOpen(true);
+              // Déclencher l'impression automatique après un court délai
+              setTimeout(() => {
+                window.print();
+              }, 500);
+            }, 1500);
+          }
         }
       },
     });
@@ -328,6 +346,19 @@ const Enrollments = () => {
         open={approvalDialogOpen}
         onOpenChange={setApprovalDialogOpen}
         enrollmentData={approvalData}
+      />
+
+      <PaymentReceipt
+        open={receiptDialogOpen}
+        onOpenChange={setReceiptDialogOpen}
+        payment={receiptPayment}
+        schoolInfo={{
+          name: school?.name || "",
+          address: school?.address,
+          phone: school?.phone,
+          email: school?.email,
+          logo_url: school?.logo_url,
+        }}
       />
     </div>
   );
