@@ -57,6 +57,7 @@ const Classes = () => {
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
   const [studentsDialogOpen, setStudentsDialogOpen] = useState(false);
   const [selectedClassForStudents, setSelectedClassForStudents] = useState<string | null>(null);
+  const [selectedLevelGroup, setSelectedLevelGroup] = useState<string | null>("Lycée");
 
   // Niveau groups
   const levelGroups = [
@@ -82,7 +83,6 @@ const Classes = () => {
     },
   ];
 
-  const [selectedLevelGroup, setSelectedLevelGroup] = useState<string | null>(null);
   
   const levels = levelGroups.flatMap(g => g.levels);
 
