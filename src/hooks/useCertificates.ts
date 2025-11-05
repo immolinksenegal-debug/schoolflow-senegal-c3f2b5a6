@@ -45,7 +45,7 @@ export const useCertificates = () => {
         .from("certificates")
         .select(`
           *,
-          students (
+          students!certificates_student_id_fkey (
             full_name,
             matricule,
             class
@@ -55,7 +55,7 @@ export const useCertificates = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Certificate[];
+      return data as unknown as Certificate[];
     },
     enabled: !!profile?.school_id,
   });
@@ -76,9 +76,11 @@ export const useCertificates = () => {
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
 
-      const totalGenerated = data?.filter(c => c.status === 'generated').length || 0;
-      const pending = data?.filter(c => c.status === 'pending').length || 0;
-      const thisMonth = data?.filter(c => {
+      const typedData = data as unknown as Array<{ status: string; created_at: string }>;
+
+      const totalGenerated = typedData?.filter(c => c.status === 'generated').length || 0;
+      const pending = typedData?.filter(c => c.status === 'pending').length || 0;
+      const thisMonth = typedData?.filter(c => {
         const certDate = new Date(c.created_at);
         return certDate.getMonth() === currentMonth && certDate.getFullYear() === currentYear;
       }).length || 0;
@@ -110,7 +112,7 @@ export const useCertificates = () => {
           metadata: data.metadata || {},
           status: 'generated',
           created_by: profile.user_id,
-        })
+        } as any)
         .select()
         .single();
 
@@ -132,7 +134,7 @@ export const useCertificates = () => {
       const { error } = await supabase
         .from("certificates")
         .delete()
-        .eq("id", id);
+        .eq("id", id) as any;
 
       if (error) throw error;
     },

@@ -14,6 +14,62 @@ export type Database = {
   }
   public: {
     Tables: {
+      certificates: {
+        Row: {
+          academic_year: string
+          created_at: string
+          created_by: string
+          document_type: string
+          id: string
+          issue_date: string
+          metadata: Json | null
+          pdf_url: string | null
+          school_id: string
+          signatory: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          created_by: string
+          document_type: string
+          id?: string
+          issue_date?: string
+          metadata?: Json | null
+          pdf_url?: string | null
+          school_id: string
+          signatory: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          created_by?: string
+          document_type?: string
+          id?: string
+          issue_date?: string
+          metadata?: Json | null
+          pdf_url?: string | null
+          school_id?: string
+          signatory?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classes: {
         Row: {
           annual_tuition: number | null
