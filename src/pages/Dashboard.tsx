@@ -116,17 +116,32 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
-      <div className="container mx-auto px-4 py-8 space-y-8 animate-fade-in">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-              Tableau de bord
-            </h1>
-            <p className="text-muted-foreground flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              {format(new Date(), "EEEE dd MMMM yyyy", { locale: fr })}
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-950 dark:via-gray-950 dark:to-slate-900">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 -left-40 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/3 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
+      </div>
+
+      <div className="container mx-auto px-4 py-8 space-y-8 animate-fade-in relative z-10">
+        {/* Header avec design moderne */}
+        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 rounded-2xl p-6 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
+                <BookOpen className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent mb-1">
+                  Tableau de bord
+                </h1>
+                <p className="text-muted-foreground flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4" />
+                  {format(new Date(), "EEEE dd MMMM yyyy", { locale: fr })}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -142,51 +157,55 @@ const Dashboard = () => {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="shadow-elegant border-0 overflow-hidden">
-            <div className="h-2 bg-gradient-primary" />
-            <CardHeader>
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-primary" />
-                Paiements récents
+          <Card className="shadow-xl border-0 overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+            <div className="h-1 bg-gradient-to-r from-primary via-accent to-primary" />
+            <CardHeader className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-b border-gray-100 dark:border-slate-800">
+              <CardTitle className="text-foreground flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center shadow-md">
+                  <DollarSign className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-lg">Paiements récents</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="p-6">
+              <div className="space-y-3">
                 {recentPayments.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Aucun paiement récent
+                  <div className="text-center py-12 text-muted-foreground bg-slate-50/50 dark:bg-slate-800/50 rounded-xl">
+                    <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                    <p>Aucun paiement récent</p>
                   </div>
                 ) : (
                   recentPayments.map((payment) => (
                     <div
                       key={payment.id}
-                      className="flex items-center justify-between border-b border-border pb-4 last:border-0 hover:bg-muted/50 p-3 rounded-lg transition-colors"
+                      className="flex items-center justify-between bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-900 hover:from-slate-100 hover:to-gray-100 dark:hover:from-slate-700 dark:hover:to-slate-800 p-4 rounded-xl transition-all duration-300 border border-gray-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-md"
                     >
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                            {payment.students?.full_name?.charAt(0) || "E"}
+                          </div>
                           <p className="font-semibold text-foreground">
                             {payment.students?.full_name || "Élève"}
                           </p>
                           {getPaymentTypeBadge(payment.payment_type)}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span className="font-medium">{payment.students?.class}</span>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground ml-10">
+                          <span className="font-medium bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">{payment.students?.class}</span>
                           <span>•</span>
                           <span>{format(new Date(payment.payment_date), "dd MMM yyyy", { locale: fr })}</span>
                         </div>
                       </div>
                       <div className="text-right space-y-2 ml-4">
-                        <p className="font-bold text-lg bg-gradient-primary bg-clip-text text-transparent">
+                        <p className="font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                           {Number(payment.amount).toLocaleString()} FCFA
                         </p>
-                        <div className="flex items-center gap-2 justify-end">
-                          <Badge variant="outline" className="text-xs">
-                            {payment.payment_method === 'cash' ? 'Espèces' : 
-                             payment.payment_method === 'mobile_money' ? 'Mobile Money' : 
-                             payment.payment_method === 'bank_transfer' ? 'Virement' : 
-                             payment.payment_method}
-                          </Badge>
-                        </div>
+                        <Badge variant="outline" className="text-xs bg-white dark:bg-slate-800">
+                          {payment.payment_method === 'cash' ? '💵 Espèces' : 
+                           payment.payment_method === 'mobile_money' ? '📱 Mobile Money' : 
+                           payment.payment_method === 'bank_transfer' ? '🏦 Virement' : 
+                           payment.payment_method}
+                        </Badge>
                       </div>
                     </div>
                   ))
@@ -195,40 +214,49 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-elegant border-0 overflow-hidden">
-            <div className="h-2 bg-gradient-accent" />
-            <CardHeader>
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-primary" />
-                Répartition par classe
+          <Card className="shadow-xl border-0 overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+            <div className="h-1 bg-gradient-to-r from-accent via-secondary to-accent" />
+            <CardHeader className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-b border-gray-100 dark:border-slate-800">
+              <CardTitle className="text-foreground flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-accent to-secondary rounded-lg flex items-center justify-center shadow-md">
+                  <BookOpen className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-lg">Répartition par classe</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="space-y-5">
                 {classDist.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Aucune donnée disponible
+                  <div className="text-center py-12 text-muted-foreground bg-slate-50/50 dark:bg-slate-800/50 rounded-xl">
+                    <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                    <p>Aucune donnée disponible</p>
                   </div>
                 ) : (
-                  classDist.map((item) => (
-                    <div key={item.level} className="space-y-3">
+                  classDist.map((item, index) => (
+                    <div key={item.level} className="space-y-3 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-900 p-4 rounded-xl border border-gray-200/50 dark:border-slate-700/50">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="font-semibold text-foreground flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-gradient-primary" />
+                        <span className="font-semibold text-foreground flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-md">
+                            {index + 1}
+                          </div>
                           {item.level}
                         </span>
                         <div className="flex items-center gap-3">
-                          <span className="text-muted-foreground">{item.count} élèves</span>
-                          <Badge variant="outline" className="font-semibold">
+                          <span className="text-muted-foreground bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-xs font-medium">
+                            {item.count} élèves
+                          </span>
+                          <Badge variant="outline" className="font-bold bg-white dark:bg-slate-800">
                             {item.percentage}%
                           </Badge>
                         </div>
                       </div>
-                      <div className="h-3 rounded-full bg-secondary/50 overflow-hidden shadow-inner">
+                      <div className="h-3 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden shadow-inner">
                         <div
-                          className="h-full bg-gradient-primary transition-all duration-700 ease-out shadow-sm"
+                          className="h-full bg-gradient-to-r from-primary via-accent to-primary transition-all duration-700 ease-out shadow-sm relative"
                           style={{ width: `${item.percentage}%` }}
-                        />
+                        >
+                          <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                        </div>
                       </div>
                     </div>
                   ))
