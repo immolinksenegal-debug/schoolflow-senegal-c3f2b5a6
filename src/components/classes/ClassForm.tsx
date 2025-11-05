@@ -32,18 +32,33 @@ interface ClassFormProps {
 }
 
 const LEVELS = [
+  // Universitaire
+  "Doctorat",
+  "Master 2 (M2)",
+  "Master 1 (M1)",
+  "Licence 3 (L3)",
+  "Licence 2 (L2)",
+  "Licence 1 (L1)",
+  // Lycée
   "Terminale",
   "Première",
   "Seconde",
-  "Troisième",
-  "Quatrième",
-  "Cinquième",
-  "Sixième",
+  // Collège
+  "Troisième (3ème)",
+  "Quatrième (4ème)",
+  "Cinquième (5ème)",
+  "Sixième (6ème)",
+  // Primaire
   "CM2",
   "CM1",
   "CE2",
   "CE1",
   "CP",
+  // Garderie/Maternelle
+  "Grande Section (GS)",
+  "Moyenne Section (MS)",
+  "Petite Section (PS)",
+  "Crèche",
 ];
 
 export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: ClassFormProps) => {
