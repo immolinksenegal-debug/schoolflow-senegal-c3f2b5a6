@@ -107,26 +107,26 @@ export const useEnrollments = () => {
         if (student_data.email && student_data.email !== '') {
           const { data: existingEmail } = await supabase
             .from("students")
-            .select("id, full_name")
+            .select("id, full_name, matricule")
             .eq("school_id", profile.school_id)
             .eq("email", student_data.email)
             .maybeSingle();
 
           if (existingEmail) {
-            throw new Error(`L'email ${student_data.email} est déjà utilisé par ${existingEmail.full_name}`);
+            throw new Error(`Un élève avec cet email existe déjà : ${existingEmail.full_name} (${existingEmail.matricule}). Utilisez la réinscription pour cet élève.`);
           }
         }
 
         if (student_data.phone && student_data.phone !== '') {
           const { data: existingPhone } = await supabase
             .from("students")
-            .select("id, full_name")
+            .select("id, full_name, matricule")
             .eq("school_id", profile.school_id)
             .eq("phone", student_data.phone)
             .maybeSingle();
 
           if (existingPhone) {
-            throw new Error(`Le téléphone ${student_data.phone} est déjà utilisé par ${existingPhone.full_name}`);
+            throw new Error(`Un élève avec ce numéro existe déjà : ${existingPhone.full_name} (${existingPhone.matricule}). Utilisez la réinscription pour cet élève.`);
           }
         }
         
