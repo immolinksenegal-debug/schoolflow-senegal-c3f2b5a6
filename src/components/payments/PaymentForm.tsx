@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -85,7 +85,15 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
       transaction_reference: paymentData?.transaction_reference || "",
       notes: paymentData?.notes || "",
     },
-    });
+  });
+
+  // Auto-select class when payment data is provided with student info
+  useEffect(() => {
+    if (paymentData?.students?.class) {
+      setSelectedClass(paymentData.students.class);
+      form.setValue('student_id', paymentData.student_id);
+    }
+  }, [paymentData, form]);
 
   // Auto-fill amount when student is selected
   const handleStudentChange = (studentId: string) => {
@@ -144,8 +152,12 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
 
             {/* Class Selection First */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Sélectionner la classe *</label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <label className="text-sm font-medium">Classe sélectionnée *</label>
+              <Select 
+                value={selectedClass} 
+                onValueChange={setSelectedClass}
+                disabled={!!paymentData?.students?.class}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Choisir une classe..." />
                 </SelectTrigger>
@@ -157,9 +169,14 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
                   ))}
                 </SelectContent>
               </Select>
-              {!selectedClass && (
+              {!selectedClass && !paymentData?.students?.class && (
                 <p className="text-xs text-muted-foreground">
-                  Sélectionnez d'abord une classe pour afficher les élèves
+                  Sélectionnez d&apos;abord une classe pour afficher les élèves
+                </p>
+              )}
+              {paymentData?.students?.class && (
+                <p className="text-xs text-green-600 font-medium">
+                  ✓ Classe pré-sélectionnée pour cet élève
                 </p>
               )}
             </div>
@@ -203,16 +220,29 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
                       field.onChange(value);
                       handleStudentChange(value);
                     }}
-                    defaultValue={field.value}
-                    disabled={!selectedClass}
+                    value={field.value}
+                    disabled={!selectedClass || !!paymentData?.students?.full_name}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={selectedClass ? "Sélectionner un élève..." : "Sélectionnez d'abord une classe"} />
+                        <SelectValue placeholder={
+                          paymentData?.students?.full_name 
+                            ? `${paymentData.students.full_name} (${paymentData.students.matricule})`
+                            : selectedClass 
+                              ? "Sélectionner un élève..." 
+                              : "Sélectionnez d'abord une classe"
+                        } />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="max-h-[300px]">
-                      {filteredStudents.length === 0 ? (
+                      {paymentData?.students?.full_name ? (
+                        <SelectItem value={paymentData.student_id}>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs text-muted-foreground">{paymentData.students.matricule}</span>
+                            <span className="font-medium">{paymentData.students.full_name}</span>
+                          </div>
+                        </SelectItem>
+                      ) : filteredStudents.length === 0 ? (
                         <div className="p-2 text-sm text-muted-foreground text-center">
                           {studentSearch ? "Aucun élève trouvé pour cette recherche" : "Aucun élève trouvé dans cette classe"}
                         </div>
@@ -228,6 +258,11 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
                       )}
                     </SelectContent>
                   </Select>
+                  {paymentData?.students?.full_name && (
+                    <p className="text-xs text-green-600 font-medium">
+                      ✓ Élève pré-sélectionné
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
