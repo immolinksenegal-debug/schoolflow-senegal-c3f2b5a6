@@ -7,8 +7,12 @@ import { useStudents } from "@/hooks/useStudents";
 import { usePayments } from "@/hooks/usePayments";
 import { useClasses } from "@/hooks/useClasses";
 import { useEnrollments } from "@/hooks/useEnrollments";
+import { useProfile } from "@/hooks/useProfile";
+import { useSchool } from "@/hooks/useSchool";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { toast } from "sonner";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
@@ -17,27 +21,32 @@ const Reports = () => {
   const { payments, stats: paymentStats } = usePayments();
   const { classes } = useClasses();
   const { enrollments } = useEnrollments();
+  const { school } = useSchool();
 
-  // Download functions
-  const downloadCSV = (data: any[], filename: string, headers: string[]) => {
-    const csvContent = [
-      headers.join(','),
-      ...data.map(row => headers.map(h => {
-        const value = row[h] || '';
-        return `"${value}"`;
-      }).join(','))
-    ].join('\n');
-
-    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("Rapport téléchargé avec succès");
+  // PDF Generation Helper
+  const createPDF = (title: string) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFillColor(79, 70, 229); // primary color
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.text(title, pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.text(school?.name || 'EduKash', pageWidth / 2, 30, { align: 'center' });
+    
+    // Date
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(9);
+    doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth - 15, 50, { align: 'right' });
+    
+    doc.setTextColor(0, 0, 0);
+    
+    return doc;
   };
 
   const handleDownloadFinancial = () => {
@@ -46,19 +55,38 @@ const Reports = () => {
       return;
     }
     
-    const data = payments.map(p => ({
-      'Date': new Date(p.payment_date).toLocaleDateString('fr-FR'),
-      'Reçu': p.receipt_number,
-      'Étudiant': p.students?.full_name || '',
-      'Matricule': p.students?.matricule || '',
-      'Montant': p.amount,
-      'Type': p.payment_type,
-      'Méthode': p.payment_method,
-      'Période': p.payment_period || '',
-      'Année académique': p.academic_year,
-    }));
+    const doc = createPDF('Rapport Financier');
     
-    downloadCSV(data, 'rapport_financier', Object.keys(data[0]));
+    const tableData = payments.map(p => [
+      new Date(p.payment_date).toLocaleDateString('fr-FR'),
+      p.receipt_number,
+      p.students?.full_name || '',
+      p.students?.matricule || '',
+      `${Number(p.amount).toLocaleString()} FCFA`,
+      p.payment_type,
+      p.payment_method,
+      p.academic_year,
+    ]);
+    
+    autoTable(doc, {
+      startY: 60,
+      head: [['Date', 'Reçu', 'Étudiant', 'Matricule', 'Montant', 'Type', 'Méthode', 'Année']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [79, 70, 229] },
+      styles: { fontSize: 8 },
+    });
+    
+    // Summary
+    const totalRevenue = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const finalY = (doc as any).lastAutoTable.finalY || 60;
+    
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Total des revenus: ${totalRevenue.toLocaleString()} FCFA`, 15, finalY + 15);
+    
+    doc.save(`rapport_financier_${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success("Rapport financier téléchargé");
   };
 
   const handleDownloadClasses = () => {
@@ -67,26 +95,37 @@ const Reports = () => {
       return;
     }
     
+    const doc = createPDF('Rapport par Classe');
+    
     const classData = students.reduce((acc: any[], student) => {
-      const existingClass = acc.find(c => c['Classe'] === student.class);
+      const existingClass = acc.find(c => c[0] === student.class);
       if (existingClass) {
-        existingClass['Nombre d\'étudiants']++;
-        if (student.payment_status === 'paid') existingClass['À jour']++;
-        if (student.payment_status === 'pending') existingClass['En retard']++;
-        if (student.payment_status === 'partial') existingClass['Partiel']++;
+        existingClass[1]++;
+        if (student.payment_status === 'paid') existingClass[2]++;
+        if (student.payment_status === 'pending') existingClass[3]++;
+        if (student.payment_status === 'partial') existingClass[4]++;
       } else {
-        acc.push({
-          'Classe': student.class,
-          'Nombre d\'étudiants': 1,
-          'À jour': student.payment_status === 'paid' ? 1 : 0,
-          'En retard': student.payment_status === 'pending' ? 1 : 0,
-          'Partiel': student.payment_status === 'partial' ? 1 : 0,
-        });
+        acc.push([
+          student.class,
+          1,
+          student.payment_status === 'paid' ? 1 : 0,
+          student.payment_status === 'pending' ? 1 : 0,
+          student.payment_status === 'partial' ? 1 : 0,
+        ]);
       }
       return acc;
     }, []);
     
-    downloadCSV(classData, 'rapport_classes', Object.keys(classData[0]));
+    autoTable(doc, {
+      startY: 60,
+      head: [['Classe', 'Total étudiants', 'À jour', 'En retard', 'Partiel']],
+      body: classData,
+      theme: 'grid',
+      headStyles: { fillColor: [79, 70, 229] },
+    });
+    
+    doc.save(`rapport_classes_${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success("Rapport des classes téléchargé");
   };
 
   const handleDownloadPaymentStatus = () => {
@@ -95,16 +134,28 @@ const Reports = () => {
       return;
     }
     
-    const data = students.map(s => ({
-      'Matricule': s.matricule,
-      'Nom complet': s.full_name,
-      'Classe': s.class,
-      'Statut paiement': s.payment_status === 'paid' ? 'À jour' : s.payment_status === 'partial' ? 'Partiel' : 'En retard',
-      'Téléphone parent': s.parent_phone,
-      'Email parent': s.parent_email || '',
-    }));
+    const doc = createPDF('Rapport des Paiements');
     
-    downloadCSV(data, 'rapport_paiements', Object.keys(data[0]));
+    const tableData = students.map(s => [
+      s.matricule,
+      s.full_name,
+      s.class,
+      s.payment_status === 'paid' ? 'À jour' : s.payment_status === 'partial' ? 'Partiel' : 'En retard',
+      s.parent_phone,
+      s.parent_email || 'N/A',
+    ]);
+    
+    autoTable(doc, {
+      startY: 60,
+      head: [['Matricule', 'Nom complet', 'Classe', 'Statut', 'Tél. parent', 'Email parent']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [79, 70, 229] },
+      styles: { fontSize: 8 },
+    });
+    
+    doc.save(`rapport_paiements_${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success("Rapport des paiements téléchargé");
   };
 
   const handleDownloadEnrollments = () => {
@@ -113,17 +164,29 @@ const Reports = () => {
       return;
     }
     
-    const data = enrollments.map(e => ({
-      'Date': new Date(e.enrollment_date).toLocaleDateString('fr-FR'),
-      'Type': e.enrollment_type === 'new' ? 'Nouvelle inscription' : 'Réinscription',
-      'Classe demandée': e.requested_class,
-      'Classe précédente': e.previous_class || 'N/A',
-      'Année académique': e.academic_year,
-      'Statut': e.status === 'pending' ? 'En attente' : e.status === 'approved' ? 'Approuvé' : 'Rejeté',
-      'Statut paiement': e.payment_status === 'paid' ? 'Payé' : 'En attente',
-    }));
+    const doc = createPDF('Rapport des Inscriptions');
     
-    downloadCSV(data, 'rapport_inscriptions', Object.keys(data[0]));
+    const tableData = enrollments.map(e => [
+      new Date(e.enrollment_date).toLocaleDateString('fr-FR'),
+      e.enrollment_type === 'new' ? 'Nouvelle' : 'Réinscription',
+      e.requested_class,
+      e.previous_class || 'N/A',
+      e.academic_year,
+      e.status === 'pending' ? 'En attente' : e.status === 'approved' ? 'Approuvé' : 'Rejeté',
+      e.payment_status === 'paid' ? 'Payé' : 'En attente',
+    ]);
+    
+    autoTable(doc, {
+      startY: 60,
+      head: [['Date', 'Type', 'Classe demandée', 'Classe préc.', 'Année', 'Statut', 'Paiement']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [79, 70, 229] },
+      styles: { fontSize: 8 },
+    });
+    
+    doc.save(`rapport_inscriptions_${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success("Rapport des inscriptions téléchargé");
   };
 
   const handleExportAll = () => {
