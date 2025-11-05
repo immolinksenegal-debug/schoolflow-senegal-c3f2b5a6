@@ -53,6 +53,10 @@ import { useClasses } from "@/hooks/useClasses";
 import { usePayments } from "@/hooks/usePayments";
 import { PaymentForm } from "@/components/payments/PaymentForm";
 import { PaymentReceipt } from "@/components/payments/PaymentReceipt";
+import { useStudentLimit } from "@/hooks/useStudentLimit";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 const Students = () => {
   const [searchParams] = useSearchParams();
@@ -73,6 +77,7 @@ const Students = () => {
   const { school } = useSchool();
   const { classes } = useClasses();
   const { payments, createPayment } = usePayments();
+  const { data: limitInfo } = useStudentLimit(school?.id);
 
   useEffect(() => {
     if (classParam) {
@@ -107,6 +112,19 @@ const Students = () => {
   };
 
   const handleCreate = (data: any) => {
+    // Vérifier la limite d'étudiants
+    if (limitInfo && !limitInfo.can_add) {
+      toast.error(
+        "Limite d'inscriptions atteinte",
+        {
+          description: `Vous avez atteint la limite de ${limitInfo.max_limit} inscriptions de votre forfait gratuit. Veuillez souscrire à un abonnement pour continuer.`,
+          duration: 5000,
+        }
+      );
+      setIsAddDialogOpen(false);
+      return;
+    }
+
     createStudent.mutate(data, {
       onSuccess: () => {
         setIsAddDialogOpen(false);
@@ -204,11 +222,33 @@ const Students = () => {
       </style>
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
+          {/* Alert pour la limite d'inscriptions */}
+          {limitInfo && limitInfo.plan === "free" && limitInfo.remaining <= 5 && (
+            <Alert variant={limitInfo.remaining === 0 ? "destructive" : "default"} className="no-print">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>
+                {limitInfo.remaining === 0 
+                  ? "Limite d'inscriptions atteinte !" 
+                  : "Attention : Limite proche"}
+              </AlertTitle>
+              <AlertDescription>
+                {limitInfo.remaining === 0 
+                  ? `Vous avez atteint la limite de ${limitInfo.max_limit} inscriptions de votre forfait gratuit. Souscrivez à un abonnement pour continuer à ajouter des élèves.`
+                  : `Il vous reste ${limitInfo.remaining} inscription${limitInfo.remaining > 1 ? 's' : ''} disponible${limitInfo.remaining > 1 ? 's' : ''} sur ${limitInfo.max_limit} (Forfait gratuit).`}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 no-print">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">Gestion des élèves</h1>
               <p className="text-muted-foreground">
                 {filteredStudents.length} élève{filteredStudents.length > 1 ? 's' : ''} · {students.length} au total
+                {limitInfo && limitInfo.plan === "free" && (
+                  <span className="ml-2 text-xs">
+                    ({limitInfo.current_count}/{limitInfo.max_limit} inscriptions utilisées)
+                  </span>
+                )}
               </p>
             </div>
             <div className="flex gap-2">

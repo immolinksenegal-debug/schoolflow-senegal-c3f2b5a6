@@ -479,9 +479,13 @@ export type Database = {
           id: string
           is_active: boolean | null
           logo_url: string | null
+          max_students: number | null
           name: string
           phone: string | null
           subscription_end_date: string | null
+          subscription_plan:
+            | Database["public"]["Enums"]["subscription_plan"]
+            | null
           subscription_status:
             | Database["public"]["Enums"]["subscription_status"]
             | null
@@ -494,9 +498,13 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
+          max_students?: number | null
           name: string
           phone?: string | null
           subscription_end_date?: string | null
+          subscription_plan?:
+            | Database["public"]["Enums"]["subscription_plan"]
+            | null
           subscription_status?:
             | Database["public"]["Enums"]["subscription_status"]
             | null
@@ -509,9 +517,13 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
+          max_students?: number | null
           name?: string
           phone?: string | null
           subscription_end_date?: string | null
+          subscription_plan?:
+            | Database["public"]["Enums"]["subscription_plan"]
+            | null
           subscription_status?:
             | Database["public"]["Enums"]["subscription_status"]
             | null
@@ -722,6 +734,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_student_limit: { Args: { _school_id: string }; Returns: Json }
       generate_receipt_number: {
         Args: { p_school_id: string }
         Returns: string
@@ -737,6 +750,7 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "school_admin" | "teacher" | "accountant"
+      subscription_plan: "free" | "monthly" | "annual"
       subscription_status: "active" | "expired" | "cancelled" | "pending"
       subscription_type: "monthly" | "annual"
     }
@@ -867,6 +881,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "school_admin", "teacher", "accountant"],
+      subscription_plan: ["free", "monthly", "annual"],
       subscription_status: ["active", "expired", "cancelled", "pending"],
       subscription_type: ["monthly", "annual"],
     },
