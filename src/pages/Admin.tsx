@@ -19,6 +19,7 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { SchoolsManagement } from "@/components/admin/SchoolsManagement";
 import { UsersManagement } from "@/components/admin/UsersManagement";
 import { ReportsPanel } from "@/components/admin/ReportsPanel";
+import { DatabaseManagement } from "@/components/admin/DatabaseManagement";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -166,16 +167,7 @@ const Admin = () => {
               <Route path="schools" element={<SchoolsManagement />} />
               <Route path="users" element={<UsersManagement />} />
               <Route path="reports" element={<ReportsPanel />} />
-              <Route path="database" element={
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Base de données</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">Gestion de la base de données</p>
-                  </CardContent>
-                </Card>
-              } />
+              <Route path="database" element={<DatabaseManagement />} />
               <Route path="settings" element={
                 <Card>
                   <CardHeader>
