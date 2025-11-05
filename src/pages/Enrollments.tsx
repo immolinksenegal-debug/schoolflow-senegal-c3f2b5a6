@@ -172,7 +172,7 @@ const Enrollments = () => {
           </div>
           <div className="flex gap-2">
             <Button
-              className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2"
+              className="bg-primary hover:bg-primary/90 gap-2"
               onClick={() => setIsNewEnrollmentOpen(true)}
             >
               <UserPlus className="h-4 w-4" />

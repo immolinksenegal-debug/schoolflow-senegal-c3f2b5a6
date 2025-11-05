@@ -437,7 +437,7 @@ const Reports = () => {
             <p className="text-muted-foreground">Analyses et indicateurs de performance</p>
           </div>
           <Button 
-            className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2"
+            className="bg-primary hover:bg-primary/90 gap-2"
             onClick={handleExportAll}
           >
             <Download className="h-4 w-4" />

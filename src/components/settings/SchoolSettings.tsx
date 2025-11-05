@@ -257,7 +257,7 @@ export const SchoolSettings = () => {
               <Button 
                 type="submit" 
                 disabled={updateSchool.isPending || uploading}
-                className="bg-gradient-primary hover:opacity-90"
+                className="bg-primary hover:bg-primary/90"
               >
                 {updateSchool.isPending || uploading ? (
                   <>

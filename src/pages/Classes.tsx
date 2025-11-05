@@ -240,7 +240,7 @@ const Classes = () => {
             </p>
           </div>
           <Button
-            className="bg-gradient-primary hover:opacity-90 transition-opacity"
+            className="bg-primary hover:bg-primary/90"
             onClick={() => setFormOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -500,7 +500,7 @@ const Classes = () => {
                                     ? "bg-red-500"
                                     : classItem.occupancyRate >= 85
                                     ? "bg-yellow-500"
-                                    : "bg-gradient-primary"
+                                    : "bg-primary"
                                 }`}
                                 style={{ width: `${Math.min(classItem.occupancyRate, 100)}%` }}
                               />
@@ -627,7 +627,7 @@ const Classes = () => {
                               ? "bg-red-500"
                               : classItem.occupancyRate >= 85
                               ? "bg-yellow-500"
-                              : "bg-gradient-primary"
+                              : "bg-primary"
                           }`}
                           style={{ width: `${Math.min(classItem.occupancyRate, 100)}%` }}
                         />
@@ -646,7 +646,7 @@ const Classes = () => {
                           <Button
                             variant="default"
                             size="sm"
-                            className="flex-1 bg-gradient-primary hover:opacity-90"
+                            className="flex-1 bg-primary hover:bg-primary/90"
                             onClick={() => handleShowStudents(classItem.name)}
                           >
                             <DollarSign className="h-4 w-4 mr-1" />

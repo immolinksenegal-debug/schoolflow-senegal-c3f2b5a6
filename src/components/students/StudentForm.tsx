@@ -220,7 +220,7 @@ export const StudentForm = ({ onSubmit, defaultValues, isLoading }: StudentFormP
         />
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="submit" disabled={isLoading} className="bg-gradient-primary hover:opacity-90">
+          <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90">
             {isLoading ? "Enregistrement..." : "Enregistrer l'élève"}
           </Button>
         </div>

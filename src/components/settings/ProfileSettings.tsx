@@ -248,7 +248,7 @@ export const ProfileSettings = () => {
               <Button 
                 type="submit" 
                 disabled={updateProfile.isPending || uploading || (!form.formState.isDirty && !avatarFile)}
-                className="bg-gradient-primary hover:opacity-90"
+                className="bg-primary hover:bg-primary/90"
               >
                 {updateProfile.isPending || uploading ? (
                   <>

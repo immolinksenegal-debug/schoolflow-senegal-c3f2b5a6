@@ -164,7 +164,7 @@ const Admin = () => {
             </div>
           </header>
 
-          <main className="flex-1 p-6 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+          <main className="flex-1 p-6 bg-background">
             <Routes>
               <Route index element={<DashboardView />} />
               <Route path="schools" element={<SchoolsManagement />} />

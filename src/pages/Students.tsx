@@ -267,7 +267,7 @@ const Students = () => {
                 Exporter
               </Button>
               <Button 
-                className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2"
+                className="bg-primary hover:bg-primary/90 gap-2"
                 onClick={() => setIsAddDialogOpen(true)}
               >
                 <UserPlus className="h-4 w-4" />
@@ -421,7 +421,7 @@ const Students = () => {
                             <Button
                               size="sm"
                               variant="default"
-                              className="gap-1.5 bg-gradient-primary hover:opacity-90"
+                              className="gap-1.5 bg-primary hover:bg-primary/90"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setPayingStudent(student);

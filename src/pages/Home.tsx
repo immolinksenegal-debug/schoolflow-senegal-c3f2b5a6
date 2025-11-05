@@ -43,7 +43,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
+    <div className="min-h-screen bg-background">
       {/* Header avec bouton de connexion */}
       <header className="absolute top-0 left-0 right-0 z-20 bg-transparent">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -113,7 +113,7 @@ const Home = () => {
           
           <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight">
             Digitalisez votre établissement avec
-            <span className="bg-gradient-accent bg-clip-text text-transparent"> EduKash</span>
+            <span className="text-primary"> EduKash</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -123,7 +123,7 @@ const Home = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link to="/auth">
-              <Button size="lg" className="bg-gradient-primary hover:opacity-90 transition-opacity text-lg px-8 shadow-elegant">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8 shadow-elegant text-white">
                 Commencer gratuitement
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -167,7 +167,7 @@ const Home = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="container mx-auto px-4 py-20 bg-gradient-subtle">
+      <section className="container mx-auto px-4 py-20 bg-muted/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -226,7 +226,7 @@ const Home = () => {
             </div>
 
             {/* Abonnement Annuel */}
-            <div className="bg-gradient-primary rounded-xl shadow-elegant p-8 border-2 border-primary relative overflow-hidden">
+            <div className="bg-primary rounded-xl shadow-elegant p-8 border-2 border-primary relative overflow-hidden">
               <div className="absolute top-4 right-4">
                 <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1 rounded-full">
                   ÉCONOMISEZ 17%
@@ -288,7 +288,7 @@ const Home = () => {
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20">
-        <div className="max-w-4xl mx-auto bg-gradient-primary rounded-2xl p-12 text-center shadow-elegant">
+        <div className="max-w-4xl mx-auto bg-primary rounded-2xl p-12 text-center shadow-elegant">
           <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
             Prêt à transformer votre gestion scolaire ?
           </h2>

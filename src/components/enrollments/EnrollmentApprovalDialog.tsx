@@ -38,7 +38,7 @@ export const EnrollmentApprovalDialog = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+          <Card className="bg-primary/5 border-primary">
             <CardContent className="pt-6 space-y-3">
               <div>
                 <p className="text-sm text-muted-foreground">Élève</p>

@@ -382,7 +382,7 @@ export const CertificateGenerator = ({ open, onOpenChange, selectedType: initial
             Annuler
           </Button>
           <Button 
-            className="bg-gradient-primary hover:opacity-90 gap-2"
+            className="bg-primary hover:bg-primary/90 gap-2"
             onClick={handleGenerate}
             disabled={!selectedStudent || !selectedType || createCertificate.isPending}
           >

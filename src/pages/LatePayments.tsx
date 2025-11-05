@@ -302,7 +302,7 @@ const LatePayments = () => {
               Imprimer
             </Button>
             <Button 
-              className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2"
+              className="bg-primary hover:bg-primary/90 gap-2"
               onClick={() => setIsReminderDialogOpen(true)}
               disabled={selectedStudents.length === 0}
             >
@@ -453,7 +453,7 @@ const LatePayments = () => {
                 <div className="flex gap-2">
                   <Button 
                     variant="default" 
-                    className="bg-gradient-primary hover:opacity-90"
+                    className="bg-primary hover:bg-primary/90"
                     onClick={() => navigate("/settings")}
                   >
                     Configurer les relances
@@ -517,7 +517,7 @@ const LatePayments = () => {
               <Button variant="outline" onClick={() => setIsReminderDialogOpen(false)}>
                 Annuler
               </Button>
-              <Button className="bg-gradient-primary hover:opacity-90 gap-2">
+              <Button className="bg-primary hover:bg-primary/90 gap-2 text-white">
                 <Send className="h-4 w-4" />
                 Envoyer les relances
               </Button>

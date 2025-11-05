@@ -150,7 +150,7 @@ export function RemindersSettings() {
               </CardDescription>
             </div>
             <Button
-              className="bg-gradient-primary hover:opacity-90"
+              className="bg-primary hover:bg-primary/90"
               onClick={() => {
                 setEditingConfig(null);
                 setConfigDialogOpen(true);

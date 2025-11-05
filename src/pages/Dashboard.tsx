@@ -128,7 +128,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-950 dark:via-gray-950 dark:to-slate-900">
+    <div className="min-h-screen bg-background">
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
@@ -141,11 +141,11 @@ const Dashboard = () => {
         <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 rounded-2xl p-6 shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent mb-1">
+                <h1 className="text-3xl font-bold text-primary mb-1">
                   Tableau de bord
                 </h1>
                 <p className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -162,8 +162,8 @@ const Dashboard = () => {
           <div className="h-1 bg-primary" />
           <CardHeader className="pb-4">
             <CardTitle className="text-foreground flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-                <Info className="h-5 w-5 text-white" />
+                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-md">
+                  <Info className="h-5 w-5 text-white" />
               </div>
               <span className="text-lg">Guide de démarrage - Procédure normale</span>
             </CardTitle>
@@ -175,7 +175,7 @@ const Dashboard = () => {
             <div className="grid gap-3 md:grid-cols-3">
               <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-blue-200/50 dark:border-blue-800/50 space-y-2 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
                     1
                   </div>
                   <div className="space-y-1">
@@ -191,7 +191,7 @@ const Dashboard = () => {
 
               <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 space-y-2 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
                     2
                   </div>
                   <div className="space-y-1">
@@ -207,7 +207,7 @@ const Dashboard = () => {
 
               <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-red-200/50 dark:border-red-800/50 space-y-2 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
                     3
                   </div>
                   <div className="space-y-1">
@@ -251,10 +251,10 @@ const Dashboard = () => {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="shadow-xl border-0 overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
-            <div className="h-1 bg-gradient-to-r from-primary via-accent to-primary" />
-            <CardHeader className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-b border-gray-100 dark:border-slate-800">
+            <div className="h-1 bg-primary" />
+            <CardHeader className="bg-card border-b">
               <CardTitle className="text-foreground flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-md">
                   <DollarSign className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-lg">Paiements récents</span>
@@ -271,11 +271,11 @@ const Dashboard = () => {
                   recentPayments.map((payment) => (
                     <div
                       key={payment.id}
-                      className="flex items-center justify-between bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-900 hover:from-slate-100 hover:to-gray-100 dark:hover:from-slate-700 dark:hover:to-slate-800 p-4 rounded-xl transition-all duration-300 border border-gray-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-md"
+                      className="flex items-center justify-between bg-card hover:bg-muted/50 p-4 rounded-xl transition-all duration-300 border shadow-sm hover:shadow-md"
                     >
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-xs font-bold">
                             {payment.students?.full_name?.charAt(0) || "E"}
                           </div>
                           <p className="font-semibold text-foreground">
@@ -290,7 +290,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <div className="text-right space-y-2 ml-4">
-                        <p className="font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                        <p className="font-bold text-lg text-primary">
                           {Number(payment.amount).toLocaleString()} FCFA
                         </p>
                         <Badge variant="outline" className="text-xs bg-white dark:bg-slate-800">
@@ -308,10 +308,10 @@ const Dashboard = () => {
           </Card>
 
           <Card className="shadow-xl border-0 overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
-            <div className="h-1 bg-gradient-to-r from-accent via-secondary to-accent" />
-            <CardHeader className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-b border-gray-100 dark:border-slate-800">
+            <div className="h-1 bg-accent" />
+            <CardHeader className="bg-card border-b">
               <CardTitle className="text-foreground flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-accent to-secondary rounded-lg flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center shadow-md">
                   <BookOpen className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-lg">Répartition par classe</span>
@@ -326,10 +326,10 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   classDist.map((item, index) => (
-                    <div key={item.level} className="space-y-3 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-900 p-4 rounded-xl border border-gray-200/50 dark:border-slate-700/50">
+                    <div key={item.level} className="space-y-3 bg-card p-4 rounded-xl border">
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-semibold text-foreground flex items-center gap-3">
-                          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-md">
+                          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-md">
                             {index + 1}
                           </div>
                           {item.level}
@@ -345,7 +345,7 @@ const Dashboard = () => {
                       </div>
                       <div className="h-3 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden shadow-inner">
                         <div
-                          className="h-full bg-gradient-to-r from-primary via-accent to-primary transition-all duration-700 ease-out shadow-sm relative"
+                          className="h-full bg-primary transition-all duration-700 ease-out shadow-sm relative"
                           style={{ width: `${item.percentage}%` }}
                         >
                           <div className="absolute inset-0 bg-white/20 animate-pulse" />
