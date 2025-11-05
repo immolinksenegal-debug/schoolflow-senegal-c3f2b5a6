@@ -24,6 +24,24 @@ const schoolSchema = z.object({
   email: z.string().email("Email invalide").optional().or(z.literal("")),
 });
 
+// Function to check if email exists
+const checkEmailExists = async (email: string): Promise<boolean> => {
+  if (!email) return false;
+  
+  const { data, error } = await supabase
+    .from('schools')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle();
+  
+  if (error) {
+    console.error('Error checking email:', error);
+    return false;
+  }
+  
+  return !!data;
+};
+
 type SchoolFormData = z.infer<typeof schoolSchema>;
 
 const Onboarding = () => {
@@ -76,6 +94,18 @@ const Onboarding = () => {
 
   const onSubmit = async (data: SchoolFormData) => {
     if (!user) return;
+
+    // Validate email uniqueness if provided
+    if (data.email && data.email.trim()) {
+      const emailExists = await checkEmailExists(data.email.trim());
+      if (emailExists) {
+        form.setError('email', {
+          type: 'manual',
+          message: 'Cet email est déjà utilisé par un autre établissement'
+        });
+        return;
+      }
+    }
 
     setLoading(true);
     try {
