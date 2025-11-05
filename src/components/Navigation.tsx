@@ -58,7 +58,7 @@ const Navigation = () => {
             <img 
               src={eduKashLogo} 
               alt="EduKash" 
-              className="h-20 w-auto object-contain"
+              className="h-28 w-auto object-contain"
             />
           </Link>
 
