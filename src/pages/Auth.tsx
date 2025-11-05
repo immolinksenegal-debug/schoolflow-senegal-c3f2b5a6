@@ -22,7 +22,10 @@ const Auth = () => {
 
   useEffect(() => {
     const checkUserAndRedirect = async () => {
-      if (!user || rolesLoading) return;
+      if (!user) return;
+      
+      // Wait for roles to load completely
+      if (rolesLoading) return;
 
       // Check if user has a school
       const { data: profile, error: profileError } = await supabase
@@ -50,18 +53,21 @@ const Auth = () => {
         return;
       }
 
+      // Redirect based on role - Check super_admin FIRST (highest priority)
+      if (roles.includes("super_admin")) {
+        console.log("Redirecting super_admin to /admin");
+        navigate("/admin", { replace: true });
+        return;
+      }
+
       // If no school, go to onboarding
       if (!profile?.school_id) {
         navigate("/onboarding");
         return;
       }
 
-      // Redirect based on role
-      if (roles.includes("super_admin")) {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
+      // Default redirect for other roles
+      navigate("/dashboard", { replace: true });
     };
 
     checkUserAndRedirect();
