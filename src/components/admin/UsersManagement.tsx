@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, UserCog, Shield, X } from "lucide-react";
+import { Search, UserCog, Shield, X, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 export const UsersManagement = () => {
@@ -17,9 +17,15 @@ export const UsersManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedSchool, setSelectedSchool] = useState<string>("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserFullName, setNewUserFullName] = useState("");
+  const [newUserRole, setNewUserRole] = useState("");
+  const [newUserSchool, setNewUserSchool] = useState("");
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["adminUsers"],
@@ -101,6 +107,71 @@ export const UsersManagement = () => {
     },
   });
 
+  const createUser = useMutation({
+    mutationFn: async (userData: {
+      email: string;
+      password: string;
+      full_name: string;
+      role?: string;
+      school_id?: string;
+    }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(userData),
+        }
+      );
+
+      const result = await response.json();
+      
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Erreur lors de la création");
+      }
+      
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
+      toast.success("Utilisateur créé avec succès");
+      setIsCreateDialogOpen(false);
+      setNewUserEmail("");
+      setNewUserPassword("");
+      setNewUserFullName("");
+      setNewUserRole("");
+      setNewUserSchool("");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Erreur lors de la création");
+    },
+  });
+
+  const handleCreateUser = () => {
+    if (!newUserEmail || !newUserPassword || !newUserFullName) {
+      toast.error("Veuillez remplir tous les champs obligatoires");
+      return;
+    }
+
+    if (newUserRole === "school_admin" && !newUserSchool) {
+      toast.error("Veuillez sélectionner un établissement");
+      return;
+    }
+
+    createUser.mutate({
+      email: newUserEmail,
+      password: newUserPassword,
+      full_name: newUserFullName,
+      role: newUserRole || undefined,
+      school_id: newUserRole === "school_admin" ? newUserSchool : undefined,
+    });
+  };
+
   const handleAssignRole = () => {
     if (!selectedUser || !selectedRole) {
       toast.error("Veuillez sélectionner un rôle");
@@ -179,9 +250,10 @@ export const UsersManagement = () => {
               <CardTitle>Utilisateurs de la plateforme</CardTitle>
               <CardDescription>{users.length} comptes enregistrés</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <UserCog className="h-5 w-5 text-muted-foreground" />
-            </div>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Créer un utilisateur
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -282,6 +354,90 @@ export const UsersManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
+            <DialogDescription>
+              Créez un compte utilisateur gratuit pour la plateforme
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nom complet *</Label>
+              <Input
+                value={newUserFullName}
+                onChange={(e) => setNewUserFullName(e.target.value)}
+                placeholder="Jean Dupont"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Email *</Label>
+              <Input
+                type="email"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+                placeholder="jean@example.com"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Mot de passe *</Label>
+              <Input
+                type="password"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Rôle (optionnel)</Label>
+              <Select value={newUserRole} onValueChange={setNewUserRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un rôle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="super_admin">Super Admin</SelectItem>
+                  <SelectItem value="school_admin">Admin École</SelectItem>
+                  <SelectItem value="teacher">Enseignant</SelectItem>
+                  <SelectItem value="accountant">Comptable</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {newUserRole === "school_admin" && (
+              <div className="space-y-2">
+                <Label>Établissement *</Label>
+                <Select value={newUserSchool} onValueChange={setNewUserSchool}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un établissement" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {schools.map((school) => (
+                      <SelectItem key={school.id} value={school.id}>
+                        {school.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleCreateUser} disabled={createUser.isPending}>
+              {createUser.isPending ? "Création..." : "Créer l'utilisateur"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
