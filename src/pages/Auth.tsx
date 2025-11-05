@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { School, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
+import eduKashLogo from "@/assets/edukash-logo.png";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -93,9 +94,11 @@ const Auth = () => {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <School className="h-8 w-8 text-primary" />
-            </div>
+            <img 
+              src={eduKashLogo} 
+              alt="EduKash" 
+              className="h-32 w-auto object-contain"
+            />
           </div>
           <div>
             <CardTitle className="text-3xl font-bold">Gestion Scolaire</CardTitle>

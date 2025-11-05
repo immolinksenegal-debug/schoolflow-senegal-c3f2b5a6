@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { School, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
+import eduKashLogo from "@/assets/edukash-logo.png";
 
 const schoolSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
@@ -130,11 +131,15 @@ const Onboarding = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <div className="flex items-center gap-2 mb-2">
-            <School className="h-8 w-8 text-primary" />
+          <div className="flex flex-col items-center gap-4 mb-2">
+            <img 
+              src={eduKashLogo} 
+              alt="EduKash" 
+              className="h-24 w-auto object-contain"
+            />
             <CardTitle className="text-2xl">Créez votre établissement</CardTitle>
           </div>
-          <CardDescription>
+          <CardDescription className="text-center">
             Commencez par ajouter les informations de votre école ou établissement
           </CardDescription>
         </CardHeader>
