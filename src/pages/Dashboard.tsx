@@ -1,4 +1,4 @@
-import { Users, DollarSign, AlertCircle, BookOpen, TrendingUp, TrendingDown, Calendar } from "lucide-react";
+import { Users, DollarSign, AlertCircle, BookOpen, TrendingUp, TrendingDown, Calendar, Info, CheckCircle2 } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -144,6 +144,103 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Guide de démarrage */}
+        <Card className="shadow-lg border-0 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 backdrop-blur-xl">
+          <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+          <CardHeader className="pb-4">
+            <CardTitle className="text-foreground flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                <Info className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg">Guide de démarrage - Procédure normale</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground text-sm">
+              Pour une gestion efficace de votre établissement, suivez ces étapes dans l'ordre :
+            </p>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+              <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-blue-200/50 dark:border-blue-800/50 space-y-2 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
+                    1
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2">
+                      Créer les classes
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Définissez les niveaux, capacités et frais de scolarité
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 space-y-2 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
+                    2
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2">
+                      Enregistrer les élèves
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Ajoutez les informations complètes des nouveaux élèves
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-purple-200/50 dark:border-purple-800/50 space-y-2 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
+                    3
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2">
+                      Faire les inscriptions
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Inscrivez les nouveaux élèves et validez les dossiers
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-green-200/50 dark:border-green-800/50 space-y-2 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
+                    4
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2">
+                      Gérer les paiements
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Enregistrez les paiements et générez les reçus
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50 mt-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="font-semibold text-foreground text-sm">
+                    Réinscriptions annuelles
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Pour chaque nouvelle année scolaire, utilisez la section "Inscriptions" pour réinscrire les anciens élèves dans leurs nouvelles classes et enregistrer les nouveaux frais de scolarité.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
