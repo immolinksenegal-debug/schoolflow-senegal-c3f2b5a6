@@ -1,23 +1,8 @@
-import { useState } from "react";
-import { FileText, Download, Plus, Eye, Settings2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { FileText, Download, Plus, Eye, Settings2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -26,21 +11,49 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import StatCard from "@/components/StatCard";
+import { useCertificates } from "@/hooks/useCertificates";
+import { CertificateGenerator } from "@/components/certificates/CertificateGenerator";
 
 const Certificates = () => {
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
   const [selectedType, setSelectedType] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  
+  const { certificates, stats, deleteCertificate } = useCertificates();
 
-  const stats = [
-    { title: "Certificats générés", value: "156", icon: FileText, description: "Cette année" },
-    { title: "En attente", value: "8", icon: FileText },
-    { title: "Ce mois", value: "23", icon: FileText, trend: { value: 15, isPositive: true } },
-  ];
+  const statsData = useMemo(() => [
+    { 
+      title: "Certificats générés", 
+      value: stats?.totalGenerated?.toString() || "0", 
+      icon: FileText, 
+      description: "Total généré" 
+    },
+    { 
+      title: "En attente", 
+      value: stats?.pending?.toString() || "0", 
+      icon: FileText 
+    },
+    { 
+      title: "Ce mois", 
+      value: stats?.thisMonth?.toString() || "0", 
+      icon: FileText, 
+      trend: { value: 15, isPositive: true } 
+    },
+  ], [stats]);
 
-  const certificates: any[] = [];
+  const filteredCertificates = useMemo(() => {
+    if (!certificates) return [];
+    if (filterType === "all") return certificates;
+    return certificates.filter(cert => cert.document_type === filterType);
+  }, [certificates, filterType]);
 
   const documentTypes = [
     { 
@@ -88,11 +101,15 @@ const Certificates = () => {
   ];
 
   const getStatusBadge = (status: string) => {
-    if (status === "Généré") {
+    if (status === "generated") {
       return <Badge className="bg-green-50 text-green-700 border-green-200">✓ Généré</Badge>;
     } else {
       return <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">⏳ En attente</Badge>;
     }
+  };
+
+  const getDocumentTypeName = (type: string) => {
+    return documentTypes.find(d => d.id === type)?.name || type;
   };
 
   return (
@@ -104,10 +121,6 @@ const Certificates = () => {
             <p className="text-muted-foreground">Génération et gestion des documents officiels</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
-              <Settings2 className="h-4 w-4" />
-              Modèles
-            </Button>
             <Button 
               className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2"
               onClick={() => setIsGenerateDialogOpen(true)}
@@ -119,7 +132,7 @@ const Certificates = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {stats.map((stat) => (
+          {statsData.map((stat) => (
             <StatCard key={stat.title} {...stat} />
           ))}
         </div>
@@ -180,163 +193,90 @@ const Certificates = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-foreground">Documents récents</CardTitle>
-              <Select>
+              <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filtrer par type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les types</SelectItem>
-                  <SelectItem value="scolarite">Certificats</SelectItem>
-                  <SelectItem value="attestations">Attestations</SelectItem>
-                  <SelectItem value="releves">Relevés</SelectItem>
+                  {documentTypes.map(type => (
+                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border border-border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-semibold">Type de document</TableHead>
-                    <TableHead className="font-semibold">Élève</TableHead>
-                    <TableHead className="font-semibold">Classe</TableHead>
-                    <TableHead className="font-semibold">Date de génération</TableHead>
-                    <TableHead className="font-semibold">Généré par</TableHead>
-                    <TableHead className="font-semibold">Statut</TableHead>
-                    <TableHead className="font-semibold">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {certificates.map((cert) => (
-                    <TableRow key={cert.id} className="hover:bg-muted/50 transition-colors">
-                      <TableCell className="font-medium">{cert.type}</TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{cert.student}</p>
-                          <p className="text-xs text-muted-foreground">{cert.matricule}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{cert.class}</TableCell>
-                      <TableCell className="text-sm">{cert.date}</TableCell>
-                      <TableCell className="text-sm">{cert.generatedBy}</TableCell>
-                      <TableCell>{getStatusBadge(cert.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {cert.status === "Généré" ? (
-                            <>
-                              <Button size="sm" variant="outline" className="gap-1">
-                                <Eye className="h-3 w-3" />
-                                Voir
-                              </Button>
-                              <Button size="sm" variant="outline" className="gap-1">
-                                <Download className="h-3 w-3" />
-                                PDF
-                              </Button>
-                            </>
-                          ) : (
-                            <Button size="sm" variant="outline">
-                              Générer
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
+            {filteredCertificates && filteredCertificates.length > 0 ? (
+              <div className="rounded-md border border-border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-semibold">Type de document</TableHead>
+                      <TableHead className="font-semibold">Élève</TableHead>
+                      <TableHead className="font-semibold">Classe</TableHead>
+                      <TableHead className="font-semibold">Date d'émission</TableHead>
+                      <TableHead className="font-semibold">Année scolaire</TableHead>
+                      <TableHead className="font-semibold">Statut</TableHead>
+                      <TableHead className="font-semibold">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCertificates.map((cert) => (
+                      <TableRow key={cert.id} className="hover:bg-muted/50 transition-colors">
+                        <TableCell className="font-medium">
+                          {getDocumentTypeName(cert.document_type)}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{cert.students?.full_name}</p>
+                            <p className="text-xs text-muted-foreground">{cert.students?.matricule}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{cert.students?.class}</TableCell>
+                        <TableCell className="text-sm">
+                          {new Date(cert.issue_date).toLocaleDateString('fr-FR')}
+                        </TableCell>
+                        <TableCell className="text-sm">{cert.academic_year}</TableCell>
+                        <TableCell>{getStatusBadge(cert.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="gap-1"
+                              onClick={() => deleteCertificate.mutate(cert.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Aucun certificat généré pour le moment</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => setIsGenerateDialogOpen(true)}
+                >
+                  Générer votre premier certificat
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Dialog génération document */}
-        <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Générer un document officiel</DialogTitle>
-              <DialogDescription>
-                Sélectionnez l'élève et les informations nécessaires
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label>Type de document *</Label>
-                <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner le type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {documentTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
-                        {type.icon} {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Élève concerné *</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Rechercher un élève..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mat001">MAT001 - Aminata Diop (Terminale S)</SelectItem>
-                    <SelectItem value="mat002">MAT002 - Moussa Sow (Seconde A)</SelectItem>
-                    <SelectItem value="mat003">MAT003 - Fatou Ndiaye (Première L)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Année scolaire</Label>
-                  <Input value="2024-2025" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Date d'émission</Label>
-                  <Input type="date" />
-                </div>
-              </div>
-              {selectedType === "notes" && (
-                <div className="space-y-2">
-                  <Label>Période/Trimestre</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="t1">Trimestre 1</SelectItem>
-                      <SelectItem value="t2">Trimestre 2</SelectItem>
-                      <SelectItem value="t3">Trimestre 3</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label>Signataire</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="director">Directeur</SelectItem>
-                    <SelectItem value="principal">Proviseur</SelectItem>
-                    <SelectItem value="secretary">Secrétaire Général</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsGenerateDialogOpen(false)}>
-                Annuler
-              </Button>
-              <Button className="bg-gradient-primary hover:opacity-90 gap-2">
-                <FileText className="h-4 w-4" />
-                Générer le document PDF
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <CertificateGenerator 
+          open={isGenerateDialogOpen}
+          onOpenChange={setIsGenerateDialogOpen}
+          selectedType={selectedType}
+        />
       </div>
     </div>
   );
