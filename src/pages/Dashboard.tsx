@@ -158,8 +158,8 @@ const Dashboard = () => {
         </div>
 
         {/* Guide de démarrage */}
-        <Card className="shadow-lg border-0 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 backdrop-blur-xl">
-          <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+        <Card className="shadow-lg border-primary bg-primary/5">
+          <div className="h-1 bg-primary" />
           <CardHeader className="pb-4">
             <CardTitle className="text-foreground flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">

@@ -113,7 +113,7 @@ export const SystemSettings = () => {
 
       {/* Informations système */}
       <div className="grid gap-4 md:grid-cols-5">
-        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+        <Card className="border-primary bg-primary/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Version</CardTitle>
             <Server className="h-4 w-4 text-primary" />
@@ -124,7 +124,7 @@ export const SystemSettings = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-background">
+        <Card className="border-primary bg-primary/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Disponibilité</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -135,7 +135,7 @@ export const SystemSettings = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-secondary/20 bg-gradient-to-br from-secondary/5 to-background">
+        <Card className="border-secondary bg-secondary/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Écoles</CardTitle>
             <Database className="h-4 w-4 text-secondary" />
@@ -146,7 +146,7 @@ export const SystemSettings = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-accent/20 bg-gradient-to-br from-accent/5 to-background">
+        <Card className="border-accent bg-accent/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Utilisateurs</CardTitle>
             <Shield className="h-4 w-4 text-accent" />
@@ -157,7 +157,7 @@ export const SystemSettings = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-background">
+        <Card className="border-primary bg-primary/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Paiements</CardTitle>
             <Database className="h-4 w-4 text-blue-600" />
@@ -450,7 +450,7 @@ export const SystemSettings = () => {
 
             {/* Maintenance */}
             <TabsContent value="maintenance" className="space-y-6">
-              <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-background">
+              <Card className="border-accent bg-accent/5">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-orange-600">
                     <AlertCircle className="h-5 w-5" />
@@ -504,7 +504,7 @@ export const SystemSettings = () => {
                 </CardContent>
               </Card>
 
-              <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-background">
+              <Card className="border-primary bg-primary/5">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Database className="h-5 w-5" />
