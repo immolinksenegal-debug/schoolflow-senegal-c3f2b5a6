@@ -31,6 +31,26 @@ serve(async (req) => {
 
     console.log('Creating school for user:', user.id);
 
+    // Check if user already has a school
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('school_id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (existingProfile?.school_id) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Vous avez déjà créé un établissement',
+          school_id: existingProfile.school_id 
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 409,
+        }
+      );
+    }
+
     // Create school using service role (bypasses RLS)
     const { data: school, error: schoolError } = await supabaseAdmin
       .from('schools')
@@ -46,7 +66,14 @@ serve(async (req) => {
 
     if (schoolError) {
       console.error('School creation error:', schoolError);
-      throw schoolError;
+      
+      // Handle specific error codes
+      if (schoolError.code === '23505') {
+        const field = schoolError.message.includes('email') ? 'email' : 'autre champ';
+        throw new Error(`Cet ${field} est déjà utilisé par un autre établissement`);
+      }
+      
+      throw new Error(schoolError.message || 'Erreur lors de la création de l\'établissement');
     }
 
     console.log('School created:', school.id);

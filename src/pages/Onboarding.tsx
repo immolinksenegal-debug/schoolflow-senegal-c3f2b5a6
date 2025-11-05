@@ -112,7 +112,16 @@ const Onboarding = () => {
         }
       );
 
-      if (functionError) throw functionError;
+      if (functionError) {
+        console.error('Function invocation error:', functionError);
+        throw new Error(functionError.message || 'Erreur lors de la création de l\'école');
+      }
+
+      // Check if the response contains an error (e.g., 409 conflict)
+      if (result?.error) {
+        console.error('School creation error:', result.error);
+        throw new Error(result.error);
+      }
 
       // Invalider les caches pour forcer le rechargement des données
       await queryClient.invalidateQueries({ queryKey: ["school"] });
