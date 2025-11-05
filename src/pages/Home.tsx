@@ -57,7 +57,6 @@ const Home = () => {
             alt="Élèves sénégalais effectuant un paiement de scolarité"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/85 to-primary/75"></div>
         </div>
         
         <div className="container mx-auto px-4 py-12 relative z-10 h-full flex items-center">
