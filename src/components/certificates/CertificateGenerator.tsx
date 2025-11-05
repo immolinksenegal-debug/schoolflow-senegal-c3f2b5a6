@@ -87,9 +87,25 @@ export const CertificateGenerator = ({ open, onOpenChange, selectedType: initial
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Header
+    // Header with logo
     doc.setFillColor(79, 70, 229);
     doc.rect(0, 0, pageWidth, 50, 'F');
+    
+    // Add logo if available
+    if (school?.logo_url) {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = school.logo_url;
+        });
+        doc.addImage(img, 'PNG', 15, 10, 30, 30);
+      } catch (error) {
+        console.error('Error loading logo:', error);
+      }
+    }
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);

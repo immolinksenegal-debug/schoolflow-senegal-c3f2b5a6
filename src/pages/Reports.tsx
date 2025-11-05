@@ -24,13 +24,29 @@ const Reports = () => {
   const { school } = useSchool();
 
   // PDF Generation Helper
-  const createPDF = (title: string) => {
+  const createPDF = async (title: string) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     
     // Header
     doc.setFillColor(79, 70, 229); // primary color
     doc.rect(0, 0, pageWidth, 40, 'F');
+    
+    // Add logo if available
+    if (school?.logo_url) {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = school.logo_url;
+        });
+        doc.addImage(img, 'PNG', 10, 5, 30, 30);
+      } catch (error) {
+        console.error('Error loading logo:', error);
+      }
+    }
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(20);
@@ -49,13 +65,13 @@ const Reports = () => {
     return doc;
   };
 
-  const handleDownloadFinancial = () => {
+  const handleDownloadFinancial = async () => {
     if (!payments || payments.length === 0) {
       toast.error("Aucune donnée de paiement disponible");
       return;
     }
     
-    const doc = createPDF('Rapport Financier');
+    const doc = await createPDF('Rapport Financier');
     
     const tableData = payments.map(p => [
       new Date(p.payment_date).toLocaleDateString('fr-FR'),
@@ -89,13 +105,13 @@ const Reports = () => {
     toast.success("Rapport financier téléchargé");
   };
 
-  const handleDownloadClasses = () => {
+  const handleDownloadClasses = async () => {
     if (!students || students.length === 0) {
       toast.error("Aucune donnée disponible");
       return;
     }
     
-    const doc = createPDF('Rapport par Classe');
+    const doc = await createPDF('Rapport par Classe');
     
     const classData = students.reduce((acc: any[], student) => {
       const existingClass = acc.find(c => c[0] === student.class);
@@ -128,13 +144,13 @@ const Reports = () => {
     toast.success("Rapport des classes téléchargé");
   };
 
-  const handleDownloadPaymentStatus = () => {
+  const handleDownloadPaymentStatus = async () => {
     if (!students || students.length === 0) {
       toast.error("Aucune donnée disponible");
       return;
     }
     
-    const doc = createPDF('Rapport des Paiements');
+    const doc = await createPDF('Rapport des Paiements');
     
     const tableData = students.map(s => [
       s.matricule,
@@ -158,13 +174,13 @@ const Reports = () => {
     toast.success("Rapport des paiements téléchargé");
   };
 
-  const handleDownloadEnrollments = () => {
+  const handleDownloadEnrollments = async () => {
     if (!enrollments || enrollments.length === 0) {
       toast.error("Aucune donnée d'inscription disponible");
       return;
     }
     
-    const doc = createPDF('Rapport des Inscriptions');
+    const doc = await createPDF('Rapport des Inscriptions');
     
     const tableData = enrollments.map(e => [
       new Date(e.enrollment_date).toLocaleDateString('fr-FR'),
