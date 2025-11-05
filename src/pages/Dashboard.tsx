@@ -160,7 +160,7 @@ const Dashboard = () => {
             <p className="text-muted-foreground text-sm">
               Pour une gestion efficace de votre établissement, suivez ces étapes dans l'ordre :
             </p>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-3">
               <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-blue-200/50 dark:border-blue-800/50 space-y-2 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
@@ -184,26 +184,10 @@ const Dashboard = () => {
                   </div>
                   <div className="space-y-1">
                     <h4 className="font-semibold text-foreground flex items-center gap-2">
-                      Enregistrer les élèves
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      Ajoutez les informations complètes des nouveaux élèves
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-purple-200/50 dark:border-purple-800/50 space-y-2 hover:shadow-md transition-shadow">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
-                    3
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-semibold text-foreground flex items-center gap-2">
                       Faire les inscriptions
                     </h4>
                     <p className="text-xs text-muted-foreground">
-                      Inscrivez les nouveaux élèves et validez les dossiers
+                      Les élèves sont créés automatiquement lors de l'inscription
                     </p>
                   </div>
                 </div>
@@ -212,7 +196,7 @@ const Dashboard = () => {
               <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-green-200/50 dark:border-green-800/50 space-y-2 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
-                    4
+                    3
                   </div>
                   <div className="space-y-1">
                     <h4 className="font-semibold text-foreground flex items-center gap-2">
