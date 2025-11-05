@@ -1,138 +1,381 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useSchools } from "@/hooks/useSchools";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, Pencil, Trash2, Search, Power, PowerOff } from "lucide-react";
 import { toast } from "sonner";
 
+interface SchoolFormData {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
 export const SchoolsManagement = () => {
-  const queryClient = useQueryClient();
+  const { schools, isLoading, createSchool, updateSchool, toggleSchoolStatus, deleteSchool } = useSchools();
   const [searchQuery, setSearchQuery] = useState("");
-
-  const { data: schools = [], isLoading } = useQuery({
-    queryKey: ["adminSchools"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("schools")
-        .select("*")
-        .order("created_at", { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedSchool, setSelectedSchool] = useState<any>(null);
+  const [deleteSchoolId, setDeleteSchoolId] = useState<string | null>(null);
+  
+  const [formData, setFormData] = useState<SchoolFormData>({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
   });
 
-  const deleteSchool = useMutation({
-    mutationFn: async (schoolId: string) => {
-      const { error } = await supabase
-        .from("schools")
-        .delete()
-        .eq("id", schoolId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminSchools"] });
-      toast.success("École supprimée avec succès");
-    },
-    onError: (error: any) => {
-      toast.error(error.message || "Erreur lors de la suppression");
-    },
-  });
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+    });
+  };
+
+  const handleCreate = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Le nom de l'école est requis");
+      return;
+    }
+
+    createSchool.mutate(formData, {
+      onSuccess: () => {
+        setIsCreateDialogOpen(false);
+        resetForm();
+      },
+    });
+  };
+
+  const handleEdit = (school: any) => {
+    setSelectedSchool(school);
+    setFormData({
+      name: school.name,
+      email: school.email || "",
+      phone: school.phone || "",
+      address: school.address || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Le nom de l'école est requis");
+      return;
+    }
+
+    updateSchool.mutate(
+      { id: selectedSchool.id, data: formData },
+      {
+        onSuccess: () => {
+          setIsEditDialogOpen(false);
+          setSelectedSchool(null);
+          resetForm();
+        },
+      }
+    );
+  };
+
+  const handleToggleStatus = (school: any) => {
+    toggleSchoolStatus.mutate(
+      { id: school.id, isActive: !school.is_active },
+      {
+        onSuccess: () => {
+          toast.success(`École ${!school.is_active ? "activée" : "désactivée"}`);
+        },
+      }
+    );
+  };
+
+  const handleDelete = () => {
+    if (!deleteSchoolId) return;
+    
+    deleteSchool.mutate(deleteSchoolId, {
+      onSuccess: () => {
+        setDeleteSchoolId(null);
+      },
+    });
+  };
 
   const filteredSchools = schools.filter((school) =>
-    school.name.toLowerCase().includes(searchQuery.toLowerCase())
+    school.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    school.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (isLoading) {
-    return <div className="text-center py-8">Chargement...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement des établissements...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Gestion des écoles</CardTitle>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nouvelle école
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher une école..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Gestion des établissements</h2>
+        <p className="text-muted-foreground">Créez et gérez les écoles de la plateforme</p>
+      </div>
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Téléphone</TableHead>
-                <TableHead>Adresse</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Date de création</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSchools.length === 0 ? (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Établissements scolaires</CardTitle>
+              <CardDescription>Liste complète des écoles enregistrées</CardDescription>
+            </div>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nouvelle école
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[550px]">
+                <DialogHeader>
+                  <DialogTitle>Créer un établissement</DialogTitle>
+                  <DialogDescription>
+                    Ajoutez un nouvel établissement scolaire à la plateforme
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Nom de l'établissement *</Label>
+                    <Input
+                      id="name"
+                      placeholder="Lycée Blaise Pascal"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="contact@lycee.fr"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="phone">Téléphone</Label>
+                    <Input
+                      id="phone"
+                      placeholder="+221 33 123 45 67"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="address">Adresse</Label>
+                    <Textarea
+                      id="address"
+                      placeholder="123 Avenue de la République, Dakar"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => { setIsCreateDialogOpen(false); resetForm(); }}>
+                    Annuler
+                  </Button>
+                  <Button onClick={handleCreate} disabled={createSchool.isPending}>
+                    {createSchool.isPending ? "Création..." : "Créer l'école"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher par nom ou email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    Aucune école trouvée
-                  </TableCell>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Téléphone</TableHead>
+                  <TableHead>Adresse</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Date de création</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                filteredSchools.map((school) => (
-                  <TableRow key={school.id}>
-                    <TableCell className="font-medium">{school.name}</TableCell>
-                    <TableCell>{school.email || "-"}</TableCell>
-                    <TableCell>{school.phone || "-"}</TableCell>
-                    <TableCell>{school.address || "-"}</TableCell>
-                    <TableCell>
-                      <Badge variant={school.is_active ? "default" : "secondary"}>
-                        {school.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(school.created_at).toLocaleDateString("fr-FR")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button variant="outline" size="sm">
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-destructive"
-                          onClick={() => deleteSchool.mutate(school.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+              </TableHeader>
+              <TableBody>
+                {filteredSchools.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-muted-foreground">
+                          {searchQuery ? "Aucun résultat trouvé" : "Aucune école enregistrée"}
+                        </p>
+                        {!searchQuery && (
+                          <Button variant="outline" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Créer la première école
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+                ) : (
+                  filteredSchools.map((school) => (
+                    <TableRow key={school.id}>
+                      <TableCell className="font-medium">{school.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{school.email || "-"}</TableCell>
+                      <TableCell className="text-muted-foreground">{school.phone || "-"}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-[200px] truncate">
+                        {school.address || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={school.is_active ? "default" : "secondary"}>
+                          {school.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(school.created_at).toLocaleDateString("fr-FR")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleToggleStatus(school)}
+                            title={school.is_active ? "Désactiver" : "Activer"}
+                          >
+                            {school.is_active ? (
+                              <PowerOff className="h-3 w-3" />
+                            ) : (
+                              <Power className="h-3 w-3" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(school)}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => setDeleteSchoolId(school.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Dialog de modification */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>Modifier l'établissement</DialogTitle>
+            <DialogDescription>
+              Modifiez les informations de l'établissement scolaire
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Nom de l'établissement *</Label>
+              <Input
+                id="edit-name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-phone">Téléphone</Label>
+              <Input
+                id="edit-phone"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-address">Adresse</Label>
+              <Textarea
+                id="edit-address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsEditDialogOpen(false); setSelectedSchool(null); resetForm(); }}>
+              Annuler
+            </Button>
+            <Button onClick={handleUpdate} disabled={updateSchool.isPending}>
+              {updateSchool.isPending ? "Mise à jour..." : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de confirmation de suppression */}
+      <AlertDialog open={!!deleteSchoolId} onOpenChange={(open) => !open && setDeleteSchoolId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Toutes les données liées à cet établissement (classes, élèves, paiements) seront également supprimées.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };
