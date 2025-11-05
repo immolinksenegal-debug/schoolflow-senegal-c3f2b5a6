@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SchoolSettings } from "@/components/settings/SchoolSettings";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
+import { RemindersSettings } from "@/components/settings/RemindersSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, Shield, Palette, Loader2, Check, Settings as SettingsIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -62,9 +63,10 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="school" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="school">École</TabsTrigger>
             <TabsTrigger value="profile">Profil</TabsTrigger>
+            <TabsTrigger value="reminders">Relances</TabsTrigger>
             <TabsTrigger value="preferences">Préférences</TabsTrigger>
           </TabsList>
 
@@ -74,6 +76,10 @@ const Settings = () => {
 
           <TabsContent value="profile" className="space-y-4 mt-6">
             <ProfileSettings />
+          </TabsContent>
+
+          <TabsContent value="reminders" className="space-y-4 mt-6">
+            <RemindersSettings />
           </TabsContent>
 
           <TabsContent value="preferences" className="space-y-4 mt-6">

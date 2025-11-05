@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { AlertCircle, Send, Phone, Mail, MessageSquare, Download, Calendar, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +38,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const LatePayments = () => {
+  const navigate = useNavigate();
   const { students } = useStudents();
   const { classes } = useClasses();
   const { school } = useSchool();
@@ -363,23 +365,32 @@ const LatePayments = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-card bg-gradient-soft border-accent/20">
+        {/* Configuration des relances */}
+        <Card className="shadow-card bg-gradient-soft border-primary/20">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
-              <div className="rounded-full bg-accent/10 p-3">
-                <AlertCircle className="h-6 w-6 text-accent" />
+              <div className="rounded-full bg-primary/10 p-3">
+                <AlertCircle className="h-6 w-6 text-primary" />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground mb-2">Configuration des relances automatiques</h3>
                 <p className="text-muted-foreground mb-4">
-                  Les relances sont envoyées automatiquement après 7, 14 et 21 jours de retard. 
-                  Vous pouvez personnaliser les messages et la fréquence dans les paramètres.
+                  Les relances sont envoyées automatiquement selon vos configurations. 
+                  Gérez vos paramètres de relances et planifiez des envois spécifiques.
                 </p>
                 <div className="flex gap-2">
-                  <Button variant="outline">
+                  <Button 
+                    variant="default" 
+                    className="bg-gradient-primary hover:opacity-90"
+                    onClick={() => navigate("/settings")}
+                  >
                     Configurer les relances
                   </Button>
-                  <Button variant="outline" className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="gap-2"
+                    onClick={() => navigate("/settings")}
+                  >
                     <Calendar className="h-4 w-4" />
                     Planifier une relance
                   </Button>
