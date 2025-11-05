@@ -439,6 +439,10 @@ export type Database = {
           logo_url: string | null
           name: string
           phone: string | null
+          subscription_end_date: string | null
+          subscription_status:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
           updated_at: string
         }
         Insert: {
@@ -450,6 +454,10 @@ export type Database = {
           logo_url?: string | null
           name: string
           phone?: string | null
+          subscription_end_date?: string | null
+          subscription_status?:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
           updated_at?: string
         }
         Update: {
@@ -461,6 +469,10 @@ export type Database = {
           logo_url?: string | null
           name?: string
           phone?: string | null
+          subscription_end_date?: string | null
+          subscription_status?:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
           updated_at?: string
         }
         Relationships: []
@@ -526,6 +538,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "students_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          auto_renew: boolean | null
+          created_at: string
+          created_by: string | null
+          end_date: string
+          id: string
+          payment_method: string | null
+          school_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          subscription_type: Database["public"]["Enums"]["subscription_type"]
+          transaction_reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          auto_renew?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          id?: string
+          payment_method?: string | null
+          school_id: string
+          start_date: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          subscription_type: Database["public"]["Enums"]["subscription_type"]
+          transaction_reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          auto_renew?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          id?: string
+          payment_method?: string | null
+          school_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          subscription_type?: Database["public"]["Enums"]["subscription_type"]
+          transaction_reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
@@ -627,6 +695,8 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "school_admin" | "teacher" | "accountant"
+      subscription_status: "active" | "expired" | "cancelled" | "pending"
+      subscription_type: "monthly" | "annual"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -755,6 +825,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "school_admin", "teacher", "accountant"],
+      subscription_status: ["active", "expired", "cancelled", "pending"],
+      subscription_type: ["monthly", "annual"],
     },
   },
 } as const

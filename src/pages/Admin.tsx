@@ -21,6 +21,7 @@ import { UsersManagement } from "@/components/admin/UsersManagement";
 import { ReportsPanel } from "@/components/admin/ReportsPanel";
 import { DatabaseManagement } from "@/components/admin/DatabaseManagement";
 import { SystemSettings } from "@/components/admin/SystemSettings";
+import SubscriptionsManagement from "@/components/admin/SubscriptionsManagement";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -167,6 +168,7 @@ const Admin = () => {
               <Route index element={<DashboardView />} />
               <Route path="schools" element={<SchoolsManagement />} />
               <Route path="users" element={<UsersManagement />} />
+              <Route path="subscriptions" element={<SubscriptionsManagement />} />
               <Route path="reports" element={<ReportsPanel />} />
               <Route path="database" element={<DatabaseManagement />} />
               <Route path="settings" element={<SystemSettings />} />

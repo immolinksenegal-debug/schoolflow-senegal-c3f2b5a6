@@ -6,7 +6,8 @@ import {
   BarChart3,
   Settings,
   Shield,
-  Database
+  Database,
+  CreditCard
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,6 +26,7 @@ const menuItems = [
   { title: "Tableau de bord", url: "/admin", icon: LayoutDashboard, exact: true },
   { title: "Établissements", url: "/admin/schools", icon: School },
   { title: "Utilisateurs", url: "/admin/users", icon: UserCog },
+  { title: "Abonnements", url: "/admin/subscriptions", icon: CreditCard },
   { title: "Rapports", url: "/admin/reports", icon: BarChart3 },
   { title: "Base de données", url: "/admin/database", icon: Database },
   { title: "Paramètres", url: "/admin/settings", icon: Settings },
