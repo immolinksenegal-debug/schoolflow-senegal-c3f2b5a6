@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Users, TrendingUp, Shield, LogIn, CreditCard, Calendar } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -5,16 +6,27 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import bannerImage from "@/assets/school-payment-banner.jpg";
 import eduKashLogo from "@/assets/edukash-logo.png";
+import { SubscriptionPaymentDialog } from "@/components/payments/SubscriptionPaymentDialog";
 
 const Home = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [selectedSubscription, setSelectedSubscription] = useState<{
+    type: "monthly" | "annual";
+    amount: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!loading && user) {
       navigate("/dashboard");
     }
   }, [user, loading, navigate]);
+
+  const handleSubscriptionClick = (type: "monthly" | "annual", amount: number) => {
+    setSelectedSubscription({ type, amount });
+    setPaymentDialogOpen(true);
+  };
   const features = [
     "Gestion complète des élèves et inscriptions",
     "Suivi des paiements et retards automatiques",
@@ -203,12 +215,14 @@ const Home = () => {
                 </li>
               </ul>
 
-              <Link to="/auth" className="block">
-                <Button className="w-full" size="lg">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Choisir cette formule
-                </Button>
-              </Link>
+              <Button 
+                className="w-full" 
+                size="lg"
+                onClick={() => handleSubscriptionClick("monthly", 25000)}
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                Choisir cette formule
+              </Button>
             </div>
 
             {/* Abonnement Annuel */}
@@ -254,12 +268,15 @@ const Home = () => {
                 </li>
               </ul>
 
-              <Link to="/auth" className="block">
-                <Button variant="secondary" className="w-full" size="lg">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Choisir cette formule
-                </Button>
-              </Link>
+              <Button 
+                variant="secondary" 
+                className="w-full" 
+                size="lg"
+                onClick={() => handleSubscriptionClick("annual", 300000)}
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                Choisir cette formule
+              </Button>
             </div>
           </div>
 
@@ -287,6 +304,16 @@ const Home = () => {
           </Link>
         </div>
       </section>
+
+      {/* Payment Dialog */}
+      {selectedSubscription && (
+        <SubscriptionPaymentDialog
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+          subscriptionType={selectedSubscription.type}
+          amount={selectedSubscription.amount}
+        />
+      )}
     </div>
   );
 };
