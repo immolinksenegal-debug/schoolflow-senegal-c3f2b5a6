@@ -23,16 +23,21 @@ const Reports = () => {
   const { enrollments } = useEnrollments();
   const { school } = useSchool();
 
-  // PDF Generation Helper
+  // PDF Generation Helper with modern design
   const createPDF = async (title: string) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
     
-    // Header
-    doc.setFillColor(79, 70, 229); // primary color
-    doc.rect(0, 0, pageWidth, 40, 'F');
+    // Modern gradient header
+    doc.setFillColor(79, 70, 229);
+    doc.rect(0, 0, pageWidth, 50, 'F');
     
-    // Add logo if available
+    // Accent bar
+    doc.setFillColor(147, 51, 234);
+    doc.rect(0, 50, pageWidth, 2, 'F');
+    
+    // Add logo with modern styling
     if (school?.logo_url) {
       try {
         const img = new Image();
@@ -42,23 +47,34 @@ const Reports = () => {
           img.onerror = reject;
           img.src = school.logo_url;
         });
-        doc.addImage(img, 'PNG', 10, 5, 30, 30);
+        // White circle background
+        doc.setFillColor(255, 255, 255);
+        doc.circle(25, 25, 12, 'F');
+        doc.addImage(img, 'PNG', 13, 13, 24, 24);
       } catch (error) {
         console.error('Error loading logo:', error);
       }
     }
     
+    // Title with elegant typography
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20);
-    doc.text(title, pageWidth / 2, 20, { align: 'center' });
+    doc.setFontSize(22);
+    doc.setFont(undefined, 'bold');
+    doc.text(title, pageWidth / 2, 22, { align: 'center' });
     
+    // Subtitle
     doc.setFontSize(10);
-    doc.text(school?.name || 'EduKash', pageWidth / 2, 30, { align: 'center' });
+    doc.setFont(undefined, 'normal');
+    doc.text(school?.name || 'EduKash', pageWidth / 2, 32, { align: 'center' });
     
-    // Date
+    // Professional date badge
+    const dateText = `Généré le ${new Date().toLocaleDateString('fr-FR')}`;
+    doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.setFontSize(9);
-    doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth - 15, 50, { align: 'right' });
+    doc.setFillColor(249, 250, 251);
+    const dateWidth = doc.getTextWidth(dateText) + 6;
+    doc.roundedRect(pageWidth - dateWidth - margin, 55, dateWidth, 8, 2, 2, 'F');
+    doc.text(dateText, pageWidth - margin - 3, 60, { align: 'right' });
     
     doc.setTextColor(0, 0, 0);
     
@@ -85,21 +101,44 @@ const Reports = () => {
     ]);
     
     autoTable(doc, {
-      startY: 60,
+      startY: 70,
       head: [['Date', 'Reçu', 'Étudiant', 'Matricule', 'Montant', 'Type', 'Méthode', 'Année']],
       body: tableData,
-      theme: 'grid',
-      headStyles: { fillColor: [79, 70, 229] },
-      styles: { fontSize: 8 },
+      theme: 'striped',
+      headStyles: { 
+        fillColor: [79, 70, 229],
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      styles: { 
+        fontSize: 9,
+        cellPadding: 5,
+        lineColor: [229, 231, 235],
+        lineWidth: 0.1
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251]
+      },
+      columnStyles: {
+        4: { halign: 'right', fontStyle: 'bold' }
+      }
     });
     
-    // Summary
+    // Modern summary box
     const totalRevenue = payments.reduce((sum, p) => sum + Number(p.amount), 0);
-    const finalY = (doc as any).lastAutoTable.finalY || 60;
+    const finalY = (doc as any).lastAutoTable.finalY || 70;
     
-    doc.setFontSize(12);
+    doc.setFillColor(79, 70, 229);
+    doc.roundedRect(15, finalY + 10, 80, 20, 3, 3, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text('Total des revenus', 20, finalY + 18);
+    doc.setFontSize(14);
     doc.setFont(undefined, 'bold');
-    doc.text(`Total des revenus: ${totalRevenue.toLocaleString()} FCFA`, 15, finalY + 15);
+    doc.text(`${totalRevenue.toLocaleString()} FCFA`, 20, finalY + 26);
     
     doc.save(`rapport_financier_${new Date().toISOString().split('T')[0]}.pdf`);
     toast.success("Rapport financier téléchargé");
@@ -133,11 +172,32 @@ const Reports = () => {
     }, []);
     
     autoTable(doc, {
-      startY: 60,
+      startY: 70,
       head: [['Classe', 'Total étudiants', 'À jour', 'En retard', 'Partiel']],
       body: classData,
-      theme: 'grid',
-      headStyles: { fillColor: [79, 70, 229] },
+      theme: 'striped',
+      headStyles: { 
+        fillColor: [79, 70, 229],
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      styles: { 
+        fontSize: 9,
+        cellPadding: 5,
+        halign: 'center',
+        lineColor: [229, 231, 235],
+        lineWidth: 0.1
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251]
+      },
+      columnStyles: {
+        1: { fontStyle: 'bold' },
+        2: { textColor: [34, 197, 94] },
+        3: { textColor: [239, 68, 68] },
+        4: { textColor: [251, 146, 60] }
+      }
     });
     
     doc.save(`rapport_classes_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -162,12 +222,29 @@ const Reports = () => {
     ]);
     
     autoTable(doc, {
-      startY: 60,
+      startY: 70,
       head: [['Matricule', 'Nom complet', 'Classe', 'Statut', 'Tél. parent', 'Email parent']],
       body: tableData,
-      theme: 'grid',
-      headStyles: { fillColor: [79, 70, 229] },
-      styles: { fontSize: 8 },
+      theme: 'striped',
+      headStyles: { 
+        fillColor: [79, 70, 229],
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      styles: { 
+        fontSize: 9,
+        cellPadding: 5,
+        lineColor: [229, 231, 235],
+        lineWidth: 0.1
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251]
+      },
+      columnStyles: {
+        0: { fontStyle: 'bold', textColor: [79, 70, 229] },
+        3: { halign: 'center' }
+      }
     });
     
     doc.save(`rapport_paiements_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -193,12 +270,29 @@ const Reports = () => {
     ]);
     
     autoTable(doc, {
-      startY: 60,
+      startY: 70,
       head: [['Date', 'Type', 'Classe demandée', 'Classe préc.', 'Année', 'Statut', 'Paiement']],
       body: tableData,
-      theme: 'grid',
-      headStyles: { fillColor: [79, 70, 229] },
-      styles: { fontSize: 8 },
+      theme: 'striped',
+      headStyles: { 
+        fillColor: [79, 70, 229],
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      styles: { 
+        fontSize: 9,
+        cellPadding: 5,
+        lineColor: [229, 231, 235],
+        lineWidth: 0.1
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251]
+      },
+      columnStyles: {
+        5: { halign: 'center', fontStyle: 'bold' },
+        6: { halign: 'center' }
+      }
     });
     
     doc.save(`rapport_inscriptions_${new Date().toISOString().split('T')[0]}.pdf`);

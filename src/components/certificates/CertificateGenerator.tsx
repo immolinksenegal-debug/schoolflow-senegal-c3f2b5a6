@@ -82,16 +82,21 @@ export const CertificateGenerator = ({ open, onOpenChange, selectedType: initial
     const student = students?.find(s => s.id === selectedStudent);
     if (!student) return;
 
-    // Generate PDF
+    // Generate PDF with modern design
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
 
-    // Header with logo
+    // Modern gradient header
     doc.setFillColor(79, 70, 229);
-    doc.rect(0, 0, pageWidth, 50, 'F');
+    doc.rect(0, 0, pageWidth, 60, 'F');
     
-    // Add logo if available
+    // Decorative accent bar
+    doc.setFillColor(147, 51, 234);
+    doc.rect(0, 60, pageWidth, 3, 'F');
+    
+    // Add logo with circular border if available
     if (school?.logo_url) {
       try {
         const img = new Image();
@@ -101,83 +106,178 @@ export const CertificateGenerator = ({ open, onOpenChange, selectedType: initial
           img.onerror = reject;
           img.src = school.logo_url;
         });
-        doc.addImage(img, 'PNG', 15, 10, 30, 30);
+        // White circle background for logo
+        doc.setFillColor(255, 255, 255);
+        doc.circle(30, 30, 18, 'F');
+        doc.addImage(img, 'PNG', 15, 15, 30, 30);
       } catch (error) {
         console.error('Error loading logo:', error);
       }
     }
     
+    // School name with elegant typography
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.text(school?.name || 'EduKash', pageWidth / 2, 25, { align: 'center' });
+    doc.setFontSize(26);
+    doc.setFont(undefined, 'bold');
+    doc.text(school?.name || 'EduKash', pageWidth / 2, 28, { align: 'center' });
     
     doc.setFontSize(10);
-    doc.text(school?.address || '', pageWidth / 2, 35, { align: 'center' });
-    doc.text(`Tél: ${school?.phone || ''} | Email: ${school?.email || ''}`, pageWidth / 2, 42, { align: 'center' });
+    doc.setFont(undefined, 'normal');
+    doc.text(school?.address || '', pageWidth / 2, 38, { align: 'center' });
+    doc.setFontSize(9);
+    doc.text(`Tél: ${school?.phone || ''} | Email: ${school?.email || ''}`, pageWidth / 2, 48, { align: 'center' });
 
-    // Document title
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(20);
+    // Decorative border
+    doc.setDrawColor(79, 70, 229);
+    doc.setLineWidth(0.5);
+    doc.rect(margin, 75, pageWidth - (margin * 2), pageHeight - 95, 'S');
+    
+    // Inner decorative elements
+    doc.setDrawColor(147, 51, 234);
+    doc.setLineWidth(0.3);
+    doc.line(margin + 5, 80, pageWidth - margin - 5, 80);
+    doc.line(margin + 5, pageHeight - 20, pageWidth - margin - 5, pageHeight - 20);
+
+    // Document title with elegant styling
+    doc.setTextColor(79, 70, 229);
+    doc.setFontSize(22);
+    doc.setFont(undefined, 'bold');
     const docType = documentTypes.find(d => d.id === selectedType);
-    doc.text(docType?.name || '', pageWidth / 2, 70, { align: 'center' });
+    doc.text(docType?.name.toUpperCase() || '', pageWidth / 2, 95, { align: 'center' });
+    
+    // Decorative underline
+    doc.setDrawColor(147, 51, 234);
+    doc.setLineWidth(1);
+    doc.line(pageWidth / 2 - 40, 98, pageWidth / 2 + 40, 98);
 
-    // Content based on type
-    doc.setFontSize(12);
-    let yPos = 90;
+    // Content section
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+    let yPos = 115;
 
+    const contentMargin = margin + 10;
+    
     if (selectedType === 'scolarite') {
-      doc.text(`Le Directeur de ${school?.name || 'l\'établissement'},`, 20, yPos);
-      yPos += 15;
-      doc.text(`Certifie que l'élève:`, 20, yPos);
+      doc.text(`Le Directeur de ${school?.name || "l'établissement"},`, contentMargin, yPos);
+      yPos += 12;
+      doc.text(`Certifie que l'élève:`, contentMargin, yPos);
       yPos += 10;
+      
+      // Student info box
+      doc.setFillColor(249, 250, 251);
+      doc.roundedRect(contentMargin, yPos, pageWidth - (contentMargin * 2), 35, 3, 3, 'F');
+      doc.setDrawColor(229, 231, 235);
+      doc.roundedRect(contentMargin, yPos, pageWidth - (contentMargin * 2), 35, 3, 3, 'S');
+      
+      yPos += 10;
+      doc.setTextColor(79, 70, 229);
+      doc.setFontSize(13);
       doc.setFont(undefined, 'bold');
-      doc.text(`${student.full_name}`, 40, yPos);
+      doc.text(student.full_name, contentMargin + 5, yPos);
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
-      yPos += 10;
-      doc.text(`Matricule: ${student.matricule}`, 40, yPos);
-      yPos += 10;
-      doc.text(`Né(e) le: ${new Date(student.date_of_birth).toLocaleDateString('fr-FR')}`, 40, yPos);
-      yPos += 15;
-      doc.text(`Est régulièrement inscrit(e) et suit assidûment les cours de la classe de ${student.class}`, 20, yPos);
-      yPos += 10;
-      doc.text(`pour l'année scolaire ${academicYear}.`, 20, yPos);
+      yPos += 8;
+      doc.text(`Matricule: ${student.matricule}`, contentMargin + 5, yPos);
+      yPos += 6;
+      doc.text(`Né(e) le: ${new Date(student.date_of_birth).toLocaleDateString('fr-FR')}`, contentMargin + 5, yPos);
+      
+      yPos += 20;
+      doc.setFontSize(11);
+      doc.text(`Est régulièrement inscrit(e) et suit assidûment les cours de la classe de`, contentMargin, yPos);
+      yPos += 7;
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(79, 70, 229);
+      doc.text(student.class, contentMargin, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text(` pour l'année scolaire ${academicYear}.`, contentMargin + 30, yPos);
+      
     } else if (selectedType === 'inscription') {
-      doc.text(`Le Directeur de ${school?.name || 'l\'établissement'} atteste que:`, 20, yPos);
-      yPos += 15;
+      doc.text(`Le Directeur de ${school?.name || "l'établissement"} atteste que:`, contentMargin, yPos);
+      yPos += 12;
+      
+      // Student info box
+      doc.setFillColor(249, 250, 251);
+      doc.roundedRect(contentMargin, yPos, pageWidth - (contentMargin * 2), 28, 3, 3, 'F');
+      doc.setDrawColor(229, 231, 235);
+      doc.roundedRect(contentMargin, yPos, pageWidth - (contentMargin * 2), 28, 3, 3, 'S');
+      
+      yPos += 10;
+      doc.setTextColor(79, 70, 229);
+      doc.setFontSize(13);
       doc.setFont(undefined, 'bold');
-      doc.text(`${student.full_name}`, 40, yPos);
+      doc.text(student.full_name, contentMargin + 5, yPos);
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
-      yPos += 10;
-      doc.text(`Matricule: ${student.matricule}`, 40, yPos);
-      yPos += 15;
-      doc.text(`Est dûment inscrit(e) en classe de ${student.class}`, 20, yPos);
-      yPos += 10;
-      doc.text(`pour l'année scolaire ${academicYear}.`, 20, yPos);
+      yPos += 8;
+      doc.text(`Matricule: ${student.matricule}`, contentMargin + 5, yPos);
+      
+      yPos += 18;
+      doc.setFontSize(11);
+      doc.text(`Est dûment inscrit(e) en classe de `, contentMargin, yPos);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(79, 70, 229);
+      doc.text(student.class, contentMargin + 65, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(60, 60, 60);
+      yPos += 7;
+      doc.text(`pour l'année scolaire ${academicYear}.`, contentMargin, yPos);
+      
     } else if (selectedType === 'bonne_conduite') {
-      doc.text(`Je soussigné, Directeur de ${school?.name || 'l\'établissement'},`, 20, yPos);
-      yPos += 15;
-      doc.text(`Atteste que l'élève:`, 20, yPos);
+      doc.text(`Je soussigné, Directeur de ${school?.name || "l'établissement"},`, contentMargin, yPos);
+      yPos += 12;
+      doc.text(`Atteste que l'élève:`, contentMargin, yPos);
       yPos += 10;
+      
+      // Student info box
+      doc.setFillColor(249, 250, 251);
+      doc.roundedRect(contentMargin, yPos, pageWidth - (contentMargin * 2), 28, 3, 3, 'F');
+      doc.setDrawColor(229, 231, 235);
+      doc.roundedRect(contentMargin, yPos, pageWidth - (contentMargin * 2), 28, 3, 3, 'S');
+      
+      yPos += 10;
+      doc.setTextColor(79, 70, 229);
+      doc.setFontSize(13);
       doc.setFont(undefined, 'bold');
-      doc.text(`${student.full_name}`, 40, yPos);
+      doc.text(student.full_name, contentMargin + 5, yPos);
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
-      yPos += 10;
-      doc.text(`Matricule: ${student.matricule} - Classe: ${student.class}`, 40, yPos);
-      yPos += 15;
-      doc.text(`A fait preuve d'une conduite exemplaire et d'une grande assiduité`, 20, yPos);
-      yPos += 10;
-      doc.text(`tout au long de l'année scolaire ${academicYear}.`, 20, yPos);
+      yPos += 8;
+      doc.text(`Matricule: ${student.matricule} - Classe: ${student.class}`, contentMargin + 5, yPos);
+      
+      yPos += 18;
+      doc.setFontSize(11);
+      doc.text(`A fait preuve d'une conduite exemplaire et d'une grande assiduité`, contentMargin, yPos);
+      yPos += 7;
+      doc.text(`tout au long de l'année scolaire ${academicYear}.`, contentMargin, yPos);
     }
 
-    // Footer
-    yPos = pageHeight - 60;
-    doc.text(`Fait à ${school?.address || ''}, le ${new Date(issueDate).toLocaleDateString('fr-FR')}`, 20, yPos);
-    yPos += 15;
-    doc.text(`Le ${signatory === 'director' ? 'Directeur' : signatory === 'principal' ? 'Proviseur' : 'Secrétaire Général'}`, pageWidth - 60, yPos);
+    // Professional footer section
+    yPos = pageHeight - 50;
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.3);
+    doc.line(margin + 5, yPos - 5, pageWidth - margin - 5, yPos - 5);
     
-    // Signature placeholder
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Fait à ${school?.address || ''}, le ${new Date(issueDate).toLocaleDateString('fr-FR')}`, contentMargin, yPos);
+    
+    // Signature section with professional styling
     yPos += 15;
-    doc.text('_____________________', pageWidth - 70, yPos);
+    const signatoryTitle = signatory === 'director' ? 'Le Directeur' : signatory === 'principal' ? 'Le Proviseur' : 'Le Secrétaire Général';
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text(signatoryTitle, pageWidth - 70, yPos);
+    
+    // Elegant signature line
+    yPos += 8;
+    doc.setDrawColor(79, 70, 229);
+    doc.setLineWidth(0.5);
+    doc.line(pageWidth - 75, yPos, pageWidth - 25, yPos);
 
     // Save PDF
     const pdfName = `${docType?.name}_${student.matricule}_${Date.now()}.pdf`;
