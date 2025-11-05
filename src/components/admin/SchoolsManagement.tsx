@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Search, Power, PowerOff } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Power, PowerOff, Infinity } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 interface SchoolFormData {
@@ -17,6 +18,7 @@ interface SchoolFormData {
   email: string;
   phone: string;
   address: string;
+  isUnlimited: boolean;
 }
 
 export const SchoolsManagement = () => {
@@ -32,6 +34,7 @@ export const SchoolsManagement = () => {
     email: "",
     phone: "",
     address: "",
+    isUnlimited: false,
   });
 
   const resetForm = () => {
@@ -40,6 +43,7 @@ export const SchoolsManagement = () => {
       email: "",
       phone: "",
       address: "",
+      isUnlimited: false,
     });
   };
 
@@ -49,7 +53,15 @@ export const SchoolsManagement = () => {
       return;
     }
 
-    createSchool.mutate(formData, {
+    const schoolData = {
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      address: formData.address,
+      max_students: formData.isUnlimited ? -1 : 30,
+    };
+
+    createSchool.mutate(schoolData, {
       onSuccess: () => {
         setIsCreateDialogOpen(false);
         resetForm();
@@ -64,6 +76,7 @@ export const SchoolsManagement = () => {
       email: school.email || "",
       phone: school.phone || "",
       address: school.address || "",
+      isUnlimited: school.max_students === -1,
     });
     setIsEditDialogOpen(true);
   };
@@ -74,8 +87,16 @@ export const SchoolsManagement = () => {
       return;
     }
 
+    const schoolData = {
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      address: formData.address,
+      max_students: formData.isUnlimited ? -1 : (selectedSchool.max_students === -1 ? 30 : selectedSchool.max_students),
+    };
+
     updateSchool.mutate(
-      { id: selectedSchool.id, data: formData },
+      { id: selectedSchool.id, data: schoolData },
       {
         onSuccess: () => {
           setIsEditDialogOpen(false);
@@ -190,6 +211,24 @@ export const SchoolsManagement = () => {
                       rows={3}
                     />
                   </div>
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Infinity className="h-4 w-4 text-primary" />
+                        <Label htmlFor="unlimited" className="font-semibold cursor-pointer">
+                          Compte Illimité
+                        </Label>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Permettre un nombre illimité d'élèves
+                      </p>
+                    </div>
+                    <Switch
+                      id="unlimited"
+                      checked={formData.isUnlimited}
+                      onCheckedChange={(checked) => setFormData({ ...formData, isUnlimited: checked })}
+                    />
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => { setIsCreateDialogOpen(false); resetForm(); }}>
@@ -222,8 +261,7 @@ export const SchoolsManagement = () => {
                 <TableRow>
                   <TableHead>Nom</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Téléphone</TableHead>
-                  <TableHead>Adresse</TableHead>
+                  <TableHead>Limite élèves</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Date de création</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -232,7 +270,7 @@ export const SchoolsManagement = () => {
               <TableBody>
                 {filteredSchools.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12">
+                    <TableCell colSpan={6} className="text-center py-12">
                       <div className="flex flex-col items-center gap-2">
                         <p className="text-muted-foreground">
                           {searchQuery ? "Aucun résultat trouvé" : "Aucune école enregistrée"}
@@ -251,9 +289,15 @@ export const SchoolsManagement = () => {
                     <TableRow key={school.id}>
                       <TableCell className="font-medium">{school.name}</TableCell>
                       <TableCell className="text-muted-foreground">{school.email || "-"}</TableCell>
-                      <TableCell className="text-muted-foreground">{school.phone || "-"}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-[200px] truncate">
-                        {school.address || "-"}
+                      <TableCell>
+                        {school.max_students === -1 ? (
+                          <Badge variant="default" className="gap-1">
+                            <Infinity className="h-3 w-3" />
+                            Illimité
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">{school.max_students} élèves</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant={school.is_active ? "default" : "secondary"}>
@@ -345,6 +389,24 @@ export const SchoolsManagement = () => {
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 rows={3}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <Infinity className="h-4 w-4 text-primary" />
+                  <Label htmlFor="edit-unlimited" className="font-semibold cursor-pointer">
+                    Compte Illimité
+                  </Label>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Permettre un nombre illimité d'élèves
+                </p>
+              </div>
+              <Switch
+                id="edit-unlimited"
+                checked={formData.isUnlimited}
+                onCheckedChange={(checked) => setFormData({ ...formData, isUnlimited: checked })}
               />
             </div>
           </div>

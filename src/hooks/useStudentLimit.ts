@@ -7,6 +7,7 @@ export interface StudentLimitInfo {
   plan: "free" | "monthly" | "annual";
   can_add: boolean;
   remaining: number;
+  is_unlimited?: boolean;
 }
 
 export const useStudentLimit = (schoolId?: string) => {
@@ -26,12 +27,15 @@ export const useStudentLimit = (schoolId?: string) => {
       // Type assertion pour les données JSON retournées par la fonction
       const limitInfo = data as any;
       
+      const isUnlimited = Number(limitInfo.max_limit) === -1;
+      
       return {
         current_count: Number(limitInfo.current_count),
         max_limit: Number(limitInfo.max_limit),
         plan: limitInfo.plan as "free" | "monthly" | "annual",
         can_add: Boolean(limitInfo.can_add),
         remaining: Number(limitInfo.remaining),
+        is_unlimited: isUnlimited,
       };
     },
     enabled: !!schoolId,

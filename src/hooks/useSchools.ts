@@ -10,6 +10,7 @@ export interface School {
   address: string | null;
   logo_url: string | null;
   is_active: boolean;
+  max_students: number;
   created_at: string;
   updated_at: string;
 }
@@ -20,6 +21,7 @@ export interface CreateSchoolData {
   phone?: string;
   address?: string;
   logo_url?: string;
+  max_students?: number;
 }
 
 export const useSchools = () => {
