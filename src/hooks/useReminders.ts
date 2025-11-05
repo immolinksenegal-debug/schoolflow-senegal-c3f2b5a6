@@ -88,7 +88,7 @@ export const useReminders = () => {
         .from("scheduled_reminders")
         .select(`
           *,
-          students (
+          students!scheduled_reminders_student_id_fkey (
             full_name,
             matricule,
             class
@@ -98,7 +98,7 @@ export const useReminders = () => {
         .order("scheduled_date", { ascending: true });
 
       if (error) throw error;
-      return data as ScheduledReminder[];
+      return data as unknown as ScheduledReminder[];
     },
     enabled: !!profile?.school_id,
   });
