@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Users, TrendingUp, Shield, LogIn } from "lucide-react";
+import { ArrowRight, CheckCircle2, Users, TrendingUp, Shield, LogIn, CreditCard, Calendar } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -151,6 +151,121 @@ const Home = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="container mx-auto px-4 py-20 bg-gradient-subtle">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Tarifs Transparents
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Choisissez la formule qui correspond à vos besoins
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Abonnement Mensuel */}
+            <div className="bg-card rounded-xl shadow-card hover:shadow-elegant transition-all duration-300 p-8 border-2 border-transparent hover:border-primary/20">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                  <Calendar className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground mb-2">Abonnement Mensuel</h3>
+                <p className="text-muted-foreground">Flexibilité maximale</p>
+              </div>
+              
+              <div className="text-center mb-6">
+                <div className="flex items-baseline justify-center gap-2">
+                  <span className="text-5xl font-bold text-foreground">25 000</span>
+                  <span className="text-muted-foreground text-lg">FCFA/mois</span>
+                </div>
+              </div>
+
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-foreground">Accès complet à toutes les fonctionnalités</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-foreground">Support technique prioritaire</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-foreground">Mises à jour automatiques</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-foreground">Sauvegarde quotidienne des données</span>
+                </li>
+              </ul>
+
+              <Link to="/auth" className="block">
+                <Button className="w-full" size="lg">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Choisir cette formule
+                </Button>
+              </Link>
+            </div>
+
+            {/* Abonnement Annuel */}
+            <div className="bg-gradient-primary rounded-xl shadow-elegant p-8 border-2 border-primary relative overflow-hidden">
+              <div className="absolute top-4 right-4">
+                <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1 rounded-full">
+                  ÉCONOMISEZ 17%
+                </span>
+              </div>
+
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm mb-4">
+                  <Calendar className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Abonnement Annuel</h3>
+                <p className="text-white/80">Meilleur rapport qualité-prix</p>
+              </div>
+              
+              <div className="text-center mb-6">
+                <div className="flex items-baseline justify-center gap-2">
+                  <span className="text-5xl font-bold text-white">300 000</span>
+                  <span className="text-white/80 text-lg">FCFA/an</span>
+                </div>
+                <p className="text-white/70 text-sm mt-2">Soit 25 000 FCFA/mois</p>
+              </div>
+
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-white mt-0.5 flex-shrink-0" />
+                  <span className="text-white">Tous les avantages de la formule mensuelle</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-white mt-0.5 flex-shrink-0" />
+                  <span className="text-white">2 mois offerts sur l'année</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-white mt-0.5 flex-shrink-0" />
+                  <span className="text-white">Formation personnalisée offerte</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-white mt-0.5 flex-shrink-0" />
+                  <span className="text-white">Support dédié 7j/7</span>
+                </li>
+              </ul>
+
+              <Link to="/auth" className="block">
+                <Button variant="secondary" className="w-full" size="lg">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Choisir cette formule
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <p className="text-center text-muted-foreground mt-8 text-sm">
+            Tous les prix sont en Francs CFA. Paiement sécurisé par Mobile Money, Virement ou Chèque.
+          </p>
         </div>
       </section>
 
