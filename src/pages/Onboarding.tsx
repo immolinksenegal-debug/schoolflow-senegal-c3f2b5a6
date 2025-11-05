@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSchool } from "@/hooks/useSchool";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -29,6 +30,7 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
+  const { school, isLoading: schoolLoading } = useSchool();
   const [loading, setLoading] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -48,6 +50,13 @@ const Onboarding = () => {
       navigate("/auth");
     }
   }, [user, authLoading, navigate]);
+
+  // Redirect to dashboard if school already exists
+  useEffect(() => {
+    if (!authLoading && !schoolLoading && school) {
+      navigate("/dashboard");
+    }
+  }, [school, authLoading, schoolLoading, navigate]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -119,10 +128,13 @@ const Onboarding = () => {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || schoolLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Chargement...</p>
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
       </div>
     );
   }
