@@ -58,7 +58,33 @@ const Classes = () => {
   const [studentsDialogOpen, setStudentsDialogOpen] = useState(false);
   const [selectedClassForStudents, setSelectedClassForStudents] = useState<string | null>(null);
 
-  const levels = ["Terminale", "Première", "Seconde", "Troisième", "Quatrième", "Cinquième", "Sixième"];
+  // Niveau groups
+  const levelGroups = [
+    { 
+      name: "Universitaire", 
+      levels: ["Doctorat", "Master 2 (M2)", "Master 1 (M1)", "Licence 3 (L3)", "Licence 2 (L2)", "Licence 1 (L1)"]
+    },
+    { 
+      name: "Lycée", 
+      levels: ["Terminale", "Première", "Seconde"]
+    },
+    { 
+      name: "Collège", 
+      levels: ["Troisième (3ème)", "Quatrième (4ème)", "Cinquième (5ème)", "Sixième (6ème)"]
+    },
+    { 
+      name: "Primaire", 
+      levels: ["CM2", "CM1", "CE2", "CE1", "CP"]
+    },
+    { 
+      name: "Garderie", 
+      levels: ["Grande Section (GS)", "Moyenne Section (MS)", "Petite Section (PS)", "Crèche"]
+    },
+  ];
+
+  const [selectedLevelGroup, setSelectedLevelGroup] = useState<string | null>(null);
+  
+  const levels = levelGroups.flatMap(g => g.levels);
 
   // Calculate student count per class
   const getStudentCount = (className: string) => {
@@ -93,13 +119,20 @@ const Classes = () => {
   }, [classes, students, payments]);
 
   const filteredClasses = enrichedClasses.filter((c) => {
+    // Filter by level group
+    let matchesLevelGroup = true;
+    if (selectedLevelGroup) {
+      const group = levelGroups.find(g => g.name === selectedLevelGroup);
+      matchesLevelGroup = group ? group.levels.includes(c.level) : true;
+    }
+    
     const matchesLevel = selectedLevel ? c.level === selectedLevel : true;
     const matchesSearch = searchQuery
       ? c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.teacher_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.room_number?.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
-    return matchesLevel && matchesSearch;
+    return matchesLevelGroup && matchesLevel && matchesSearch;
   });
 
   const levelStats = useMemo(() => {
@@ -263,9 +296,51 @@ const Classes = () => {
           </Card>
         </div>
 
+        {/* Filtres par groupe de niveaux */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={selectedLevelGroup === null ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setSelectedLevelGroup(null);
+              setSelectedLevel(null);
+            }}
+          >
+            Tous les niveaux
+          </Button>
+          {levelGroups.map((group) => {
+            const groupClasses = enrichedClasses.filter(c => group.levels.includes(c.level));
+            const groupStudents = groupClasses.reduce((sum, c) => sum + c.studentCount, 0);
+            
+            return (
+              <Button
+                key={group.name}
+                variant={selectedLevelGroup === group.name ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setSelectedLevelGroup(selectedLevelGroup === group.name ? null : group.name);
+                  setSelectedLevel(null);
+                }}
+                className="gap-2"
+              >
+                {group.name}
+                <Badge variant="secondary" className="ml-1">
+                  {groupClasses.length} classes • {groupStudents} élèves
+                </Badge>
+              </Button>
+            );
+          })}
+        </div>
+
         {/* Statistiques par niveau */}
         <div className="grid gap-3 md:grid-cols-4 lg:grid-cols-7">
-          {levelStats.map((stat) => (
+          {levelStats
+            .filter(stat => {
+              if (!selectedLevelGroup) return true;
+              const group = levelGroups.find(g => g.name === selectedLevelGroup);
+              return group ? group.levels.includes(stat.level) : true;
+            })
+            .map((stat) => (
             <Card
               key={stat.level}
               className={`shadow-card hover:shadow-elegant transition-all duration-300 cursor-pointer ${
