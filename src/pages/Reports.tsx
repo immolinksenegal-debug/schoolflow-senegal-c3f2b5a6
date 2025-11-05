@@ -8,6 +8,7 @@ import { usePayments } from "@/hooks/usePayments";
 import { useClasses } from "@/hooks/useClasses";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { toast } from "sonner";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
@@ -16,6 +17,122 @@ const Reports = () => {
   const { payments, stats: paymentStats } = usePayments();
   const { classes } = useClasses();
   const { enrollments } = useEnrollments();
+
+  // Download functions
+  const downloadCSV = (data: any[], filename: string, headers: string[]) => {
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => headers.map(h => {
+        const value = row[h] || '';
+        return `"${value}"`;
+      }).join(','))
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Rapport téléchargé avec succès");
+  };
+
+  const handleDownloadFinancial = () => {
+    if (!payments || payments.length === 0) {
+      toast.error("Aucune donnée de paiement disponible");
+      return;
+    }
+    
+    const data = payments.map(p => ({
+      'Date': new Date(p.payment_date).toLocaleDateString('fr-FR'),
+      'Reçu': p.receipt_number,
+      'Étudiant': p.students?.full_name || '',
+      'Matricule': p.students?.matricule || '',
+      'Montant': p.amount,
+      'Type': p.payment_type,
+      'Méthode': p.payment_method,
+      'Période': p.payment_period || '',
+      'Année académique': p.academic_year,
+    }));
+    
+    downloadCSV(data, 'rapport_financier', Object.keys(data[0]));
+  };
+
+  const handleDownloadClasses = () => {
+    if (!students || students.length === 0) {
+      toast.error("Aucune donnée disponible");
+      return;
+    }
+    
+    const classData = students.reduce((acc: any[], student) => {
+      const existingClass = acc.find(c => c['Classe'] === student.class);
+      if (existingClass) {
+        existingClass['Nombre d\'étudiants']++;
+        if (student.payment_status === 'paid') existingClass['À jour']++;
+        if (student.payment_status === 'pending') existingClass['En retard']++;
+        if (student.payment_status === 'partial') existingClass['Partiel']++;
+      } else {
+        acc.push({
+          'Classe': student.class,
+          'Nombre d\'étudiants': 1,
+          'À jour': student.payment_status === 'paid' ? 1 : 0,
+          'En retard': student.payment_status === 'pending' ? 1 : 0,
+          'Partiel': student.payment_status === 'partial' ? 1 : 0,
+        });
+      }
+      return acc;
+    }, []);
+    
+    downloadCSV(classData, 'rapport_classes', Object.keys(classData[0]));
+  };
+
+  const handleDownloadPaymentStatus = () => {
+    if (!students || students.length === 0) {
+      toast.error("Aucune donnée disponible");
+      return;
+    }
+    
+    const data = students.map(s => ({
+      'Matricule': s.matricule,
+      'Nom complet': s.full_name,
+      'Classe': s.class,
+      'Statut paiement': s.payment_status === 'paid' ? 'À jour' : s.payment_status === 'partial' ? 'Partiel' : 'En retard',
+      'Téléphone parent': s.parent_phone,
+      'Email parent': s.parent_email || '',
+    }));
+    
+    downloadCSV(data, 'rapport_paiements', Object.keys(data[0]));
+  };
+
+  const handleDownloadEnrollments = () => {
+    if (!enrollments || enrollments.length === 0) {
+      toast.error("Aucune donnée d'inscription disponible");
+      return;
+    }
+    
+    const data = enrollments.map(e => ({
+      'Date': new Date(e.enrollment_date).toLocaleDateString('fr-FR'),
+      'Type': e.enrollment_type === 'new' ? 'Nouvelle inscription' : 'Réinscription',
+      'Classe demandée': e.requested_class,
+      'Classe précédente': e.previous_class || 'N/A',
+      'Année académique': e.academic_year,
+      'Statut': e.status === 'pending' ? 'En attente' : e.status === 'approved' ? 'Approuvé' : 'Rejeté',
+      'Statut paiement': e.payment_status === 'paid' ? 'Payé' : 'En attente',
+    }));
+    
+    downloadCSV(data, 'rapport_inscriptions', Object.keys(data[0]));
+  };
+
+  const handleExportAll = () => {
+    handleDownloadFinancial();
+    setTimeout(() => handleDownloadClasses(), 500);
+    setTimeout(() => handleDownloadPaymentStatus(), 1000);
+    setTimeout(() => handleDownloadEnrollments(), 1500);
+    toast.success("Tous les rapports sont en cours de téléchargement");
+  };
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -112,10 +229,30 @@ const Reports = () => {
   }, [students]);
 
   const reportTypes = [
-    { title: "Rapport financier", description: "Encaissements, retards et prévisions", icon: "💰" },
-    { title: "Rapport par classe", description: "Distribution et statistiques par classe", icon: "📚" },
-    { title: "Rapport des paiements", description: "Statuts et historique des paiements", icon: "📊" },
-    { title: "Rapport d'inscriptions", description: "Nouvelles inscriptions et réinscriptions", icon: "📝" },
+    { 
+      title: "Rapport financier", 
+      description: "Encaissements, retards et prévisions", 
+      icon: "💰",
+      action: handleDownloadFinancial
+    },
+    { 
+      title: "Rapport par classe", 
+      description: "Distribution et statistiques par classe", 
+      icon: "📚",
+      action: handleDownloadClasses
+    },
+    { 
+      title: "Rapport des paiements", 
+      description: "Statuts et historique des paiements", 
+      icon: "📊",
+      action: handleDownloadPaymentStatus
+    },
+    { 
+      title: "Rapport d'inscriptions", 
+      description: "Nouvelles inscriptions et réinscriptions", 
+      icon: "📝",
+      action: handleDownloadEnrollments
+    },
   ];
 
   return (
@@ -126,7 +263,10 @@ const Reports = () => {
             <h1 className="text-3xl font-bold text-foreground mb-2">Rapports & Statistiques</h1>
             <p className="text-muted-foreground">Analyses et indicateurs de performance</p>
           </div>
-          <Button className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2">
+          <Button 
+            className="bg-gradient-primary hover:opacity-90 transition-opacity gap-2"
+            onClick={handleExportAll}
+          >
             <Download className="h-4 w-4" />
             Exporter tout
           </Button>
@@ -237,7 +377,11 @@ const Reports = () => {
                     <div className="text-4xl mb-2">{report.icon}</div>
                     <h3 className="font-semibold text-foreground">{report.title}</h3>
                     <p className="text-sm text-muted-foreground">{report.description}</p>
-                    <Button variant="outline" className="w-full gap-2 mt-4">
+                    <Button 
+                      variant="outline" 
+                      className="w-full gap-2 mt-4"
+                      onClick={report.action}
+                    >
                       <Download className="h-4 w-4" />
                       Télécharger
                     </Button>
