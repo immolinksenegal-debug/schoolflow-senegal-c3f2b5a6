@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ type SchoolFormData = z.infer<typeof schoolSchema>;
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -102,6 +104,10 @@ const Onboarding = () => {
 
       if (functionError) throw functionError;
 
+      // Invalider les caches pour forcer le rechargement des données
+      await queryClient.invalidateQueries({ queryKey: ["school"] });
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      
       toast.success("École créée avec succès");
       navigate("/dashboard");
     } catch (error: any) {
