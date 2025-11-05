@@ -1,12 +1,14 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { 
   Home, Users, BookOpen, Settings, BarChart3,
-  FileText, DollarSign, AlertCircle, Receipt, TrendingUp, LogOut
+  FileText, DollarSign, AlertCircle, Receipt, TrendingUp, LogOut, Menu, X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import eduKashLogo from "@/assets/edukash-logo.png";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -20,6 +22,7 @@ const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -58,10 +61,11 @@ const Navigation = () => {
             <img 
               src={eduKashLogo} 
               alt="EduKash" 
-              className="h-28 w-auto object-contain"
+              className="h-20 sm:h-28 w-auto object-contain"
             />
           </Link>
 
+          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-1">
             {mainLinks.map((link) => {
               const Icon = link.icon;
@@ -199,6 +203,133 @@ const Navigation = () => {
               Déconnexion
             </Button>
           </div>
+
+          {/* Mobile Menu */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild className="lg:hidden">
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle className="text-left">Menu</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 flex flex-col space-y-3">
+                {/* Main Links */}
+                {mainLinks.map((link) => {
+                  const Icon = link.icon;
+                  const active = isActive(link.to);
+                  return (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all",
+                        active
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground hover:bg-muted"
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {link.label}
+                    </Link>
+                  );
+                })}
+
+                <div className="border-t pt-3 mt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase px-4 mb-2">Gestion</p>
+                  {managementLinks.map((link) => {
+                    const Icon = link.icon;
+                    const active = isActive(link.to);
+                    return (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all",
+                          active
+                            ? "bg-primary text-primary-foreground"
+                            : "text-foreground hover:bg-muted"
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <div>
+                          <div>{link.label}</div>
+                          <p className="text-xs text-muted-foreground">{link.description}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                <div className="border-t pt-3 mt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase px-4 mb-2">Finances</p>
+                  {financeLinks.map((link) => {
+                    const Icon = link.icon;
+                    const active = isActive(link.to);
+                    return (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all",
+                          active
+                            ? "bg-primary text-primary-foreground"
+                            : "text-foreground hover:bg-muted"
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <div>
+                          <div>{link.label}</div>
+                          <p className="text-xs text-muted-foreground">{link.description}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                <div className="border-t pt-3 mt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase px-4 mb-2">Plus</p>
+                  {analyticsLinks.map((link) => {
+                    const Icon = link.icon;
+                    const active = isActive(link.to);
+                    return (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all",
+                          active
+                            ? "bg-primary text-primary-foreground"
+                            : "text-foreground hover:bg-muted"
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <div>
+                          <div>{link.label}</div>
+                          <p className="text-xs text-muted-foreground">{link.description}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                <Button 
+                  variant="outline" 
+                  onClick={handleSignOut}
+                  className="w-full mt-4 justify-start gap-3"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Déconnexion
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>

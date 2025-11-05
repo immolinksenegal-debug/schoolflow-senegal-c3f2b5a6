@@ -138,24 +138,24 @@ const Dashboard = () => {
 
       <div className="container mx-auto px-4 py-8 space-y-8 animate-fade-in relative z-10">
         {/* Header avec design moderne */}
-        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 rounded-2xl p-6 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-                <BookOpen className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-primary mb-1">
-                  Tableau de bord
-                </h1>
-                <p className="text-muted-foreground flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4" />
-                  {format(new Date(), "EEEE dd MMMM yyyy", { locale: fr })}
-                </p>
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 rounded-2xl p-4 sm:p-6 shadow-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-1">
+                    Tableau de bord
+                  </h1>
+                  <p className="text-muted-foreground flex items-center gap-2 text-xs sm:text-sm">
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                    {format(new Date(), "EEEE dd MMMM yyyy", { locale: fr })}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
         {/* Guide de démarrage */}
         <Card className="shadow-lg border-primary bg-primary/5">
@@ -172,7 +172,7 @@ const Dashboard = () => {
             <p className="text-muted-foreground text-sm">
               Pour une gestion efficace de votre établissement, suivez ces étapes dans l'ordre :
             </p>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
               <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-blue-200/50 dark:border-blue-800/50 space-y-2 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 mt-0.5">
@@ -238,7 +238,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
             <div
               key={stat.title}
@@ -249,7 +249,7 @@ const Dashboard = () => {
           ))}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
           <Card className="shadow-xl border-0 overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
             <div className="h-1 bg-primary" />
             <CardHeader className="bg-card border-b">
