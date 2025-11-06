@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSchools } from "@/hooks/useSchools";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,9 @@ interface SchoolFormData {
   phone: string;
   address: string;
   isUnlimited: boolean;
+  adminName: string;
+  adminEmail: string;
+  adminPassword: string;
 }
 
 export const SchoolsManagement = () => {
@@ -35,6 +39,9 @@ export const SchoolsManagement = () => {
     phone: "",
     address: "",
     isUnlimited: false,
+    adminName: "",
+    adminEmail: "",
+    adminPassword: "",
   });
 
   const resetForm = () => {
@@ -44,12 +51,20 @@ export const SchoolsManagement = () => {
       phone: "",
       address: "",
       isUnlimited: false,
+      adminName: "",
+      adminEmail: "",
+      adminPassword: "",
     });
   };
 
   const handleCreate = async () => {
     if (!formData.name.trim()) {
       toast.error("Le nom de l'école est requis");
+      return;
+    }
+
+    if (!formData.adminName.trim() || !formData.adminEmail.trim() || !formData.adminPassword.trim()) {
+      toast.error("Les informations de l'administrateur sont requises");
       return;
     }
 
@@ -62,7 +77,40 @@ export const SchoolsManagement = () => {
     };
 
     createSchool.mutate(schoolData, {
-      onSuccess: () => {
+      onSuccess: async (data: any) => {
+        // Create admin user after school creation
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session?.access_token}`,
+              },
+              body: JSON.stringify({
+                email: formData.adminEmail,
+                password: formData.adminPassword,
+                full_name: formData.adminName,
+                role: "school_admin",
+                school_id: data.id,
+              }),
+            }
+          );
+
+          const result = await response.json();
+          
+          if (!response.ok || !result.success) {
+            throw new Error(result.error || "Erreur lors de la création de l'administrateur");
+          }
+          
+          toast.success("École et administrateur créés avec succès");
+        } catch (error: any) {
+          toast.error(error.message || "École créée mais erreur lors de la création de l'administrateur");
+        }
+        
         setIsCreateDialogOpen(false);
         resetForm();
       },
@@ -77,6 +125,9 @@ export const SchoolsManagement = () => {
       phone: school.phone || "",
       address: school.address || "",
       isUnlimited: school.max_students === -1,
+      adminName: "",
+      adminEmail: "",
+      adminPassword: "",
     });
     setIsEditDialogOpen(true);
   };
@@ -228,6 +279,42 @@ export const SchoolsManagement = () => {
                       checked={formData.isUnlimited}
                       onCheckedChange={(checked) => setFormData({ ...formData, isUnlimited: checked })}
                     />
+                  </div>
+                  
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="font-semibold">Compte administrateur</h4>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="adminName">Nom de l'administrateur *</Label>
+                      <Input
+                        id="adminName"
+                        placeholder="Jean Dupont"
+                        value={formData.adminName}
+                        onChange={(e) => setFormData({ ...formData, adminName: e.target.value })}
+                      />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="adminEmail">Email de l'administrateur *</Label>
+                      <Input
+                        id="adminEmail"
+                        type="email"
+                        placeholder="admin@lycee.fr"
+                        value={formData.adminEmail}
+                        onChange={(e) => setFormData({ ...formData, adminEmail: e.target.value })}
+                      />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="adminPassword">Mot de passe *</Label>
+                      <Input
+                        id="adminPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        value={formData.adminPassword}
+                        onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value })}
+                      />
+                    </div>
                   </div>
                 </div>
                 <DialogFooter>
