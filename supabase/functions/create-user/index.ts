@@ -62,9 +62,23 @@ serve(async (req) => {
 
     if (createError) throw createError;
 
-    // The profile should be created automatically by the trigger
-    // Wait a bit to ensure trigger completes
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Wait for profile creation by trigger and verify it exists
+    let profileCreated = false;
+    let attempts = 0;
+    while (!profileCreated && attempts < 10) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("id")
+        .eq("user_id", newUser.user.id)
+        .maybeSingle();
+      
+      if (profile) {
+        profileCreated = true;
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        attempts++;
+      }
+    }
 
     // Assign role if provided
     if (role && newUser.user) {
@@ -78,13 +92,17 @@ serve(async (req) => {
         roleData.school_id = school_id;
 
         // Update the profile with school_id
-        await supabaseAdmin
+        const { error: profileUpdateError } = await supabaseAdmin
           .from("profiles")
           .update({ school_id })
           .eq("user_id", newUser.user.id);
 
+        if (profileUpdateError) {
+          console.error("Error updating profile with school_id:", profileUpdateError);
+        }
+
         // Set the school as free and unlimited for super_admin created accounts
-        await supabaseAdmin
+        const { error: schoolUpdateError } = await supabaseAdmin
           .from("schools")
           .update({ 
             subscription_plan: "free",
@@ -92,6 +110,10 @@ serve(async (req) => {
             subscription_status: "active"
           })
           .eq("id", school_id);
+
+        if (schoolUpdateError) {
+          console.error("Error updating school:", schoolUpdateError);
+        }
       }
 
       const { error: roleError } = await supabaseAdmin
