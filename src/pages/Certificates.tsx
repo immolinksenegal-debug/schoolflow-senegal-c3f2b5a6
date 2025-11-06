@@ -78,13 +78,6 @@ const Certificates = () => {
       fields: ["Nom", "Montant", "Période", "Mode de paiement"]
     },
     { 
-      id: "notes",
-      name: "Relevé de notes", 
-      description: "Document officiel des notes de l'élève", 
-      icon: "📊",
-      fields: ["Nom", "Classe", "Trimestre", "Matières et notes"]
-    },
-    { 
       id: "presence",
       name: "Attestation de présence", 
       description: "Confirme la présence régulière de l'élève", 
