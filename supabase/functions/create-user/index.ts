@@ -77,11 +77,21 @@ serve(async (req) => {
       if (role === "school_admin" && school_id) {
         roleData.school_id = school_id;
 
-        // Also update the profile with school_id
+        // Update the profile with school_id
         await supabaseAdmin
           .from("profiles")
           .update({ school_id })
           .eq("user_id", newUser.user.id);
+
+        // Set the school as free and unlimited for super_admin created accounts
+        await supabaseAdmin
+          .from("schools")
+          .update({ 
+            subscription_plan: "free",
+            max_students: -1,
+            subscription_status: "active"
+          })
+          .eq("id", school_id);
       }
 
       const { error: roleError } = await supabaseAdmin
