@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import bannerImage from "@/assets/school-payment-banner.jpg";
 import eduKashLogo from "@/assets/edukash-logo.png";
 import { SubscriptionPaymentDialog } from "@/components/payments/SubscriptionPaymentDialog";
+import { toast } from "sonner";
 
 const Home = () => {
   const { user, loading } = useAuth();
@@ -24,6 +25,11 @@ const Home = () => {
   }, [user, loading, navigate]);
 
   const handleSubscriptionClick = (type: "monthly" | "annual", amount: number) => {
+    if (!user) {
+      toast.error("Veuillez vous connecter pour souscrire à un abonnement");
+      navigate("/auth");
+      return;
+    }
     setSelectedSubscription({ type, amount });
     setPaymentDialogOpen(true);
   };
