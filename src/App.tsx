@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AssistantChat } from "./components/AssistantChat";
+import { WhatsAppSupport } from "./components/WhatsAppSupport";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
@@ -126,6 +128,8 @@ const AppContent = () => {
         />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <AssistantChat />
+      <WhatsAppSupport />
     </>
   );
 };
