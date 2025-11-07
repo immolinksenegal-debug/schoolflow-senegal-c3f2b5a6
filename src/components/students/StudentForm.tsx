@@ -19,6 +19,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useClasses } from "@/hooks/useClasses";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const studentSchema = z.object({
   matricule: z.string().min(1, "Le matricule est requis").max(50),
@@ -42,6 +45,8 @@ interface StudentFormProps {
 }
 
 export const StudentForm = ({ onSubmit, defaultValues, isLoading }: StudentFormProps) => {
+  const { classes, isLoading: loadingClasses } = useClasses();
+  
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
     defaultValues: defaultValues || {
@@ -57,6 +62,18 @@ export const StudentForm = ({ onSubmit, defaultValues, isLoading }: StudentFormP
       parent_email: "",
     },
   });
+
+  // Si aucune classe n'existe et qu'on n'est pas en mode édition
+  if (!loadingClasses && classes.length === 0 && !defaultValues) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription className="ml-2">
+          Aucune classe n'a été créée. Veuillez d'abord créer des classes dans le menu "Classes" avant d'ajouter des élèves.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -110,21 +127,18 @@ export const StudentForm = ({ onSubmit, defaultValues, isLoading }: StudentFormP
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Classe *</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={loadingClasses}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une classe" />
+                      <SelectValue placeholder={loadingClasses ? "Chargement..." : "Sélectionner une classe"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Terminale S">Terminale S</SelectItem>
-                    <SelectItem value="Terminale L">Terminale L</SelectItem>
-                    <SelectItem value="Première S">Première S</SelectItem>
-                    <SelectItem value="Première L">Première L</SelectItem>
-                    <SelectItem value="Seconde A">Seconde A</SelectItem>
-                    <SelectItem value="Seconde B">Seconde B</SelectItem>
-                    <SelectItem value="Troisième">Troisième</SelectItem>
-                    <SelectItem value="Quatrième">Quatrième</SelectItem>
+                    {classes.map((classItem) => (
+                      <SelectItem key={classItem.id} value={classItem.name}>
+                        {classItem.name} ({classItem.level})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
