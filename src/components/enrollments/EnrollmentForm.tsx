@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useClasses } from "@/hooks/useClasses";
 import { useStudents } from "@/hooks/useStudents";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const enrollmentSchema = z.object({
   enrollment_type: z.enum(['new', 're-enrollment']),
@@ -40,7 +42,7 @@ interface EnrollmentFormProps {
 }
 
 export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: EnrollmentFormProps) => {
-  const { classes } = useClasses();
+  const { classes, isLoading: loadingClasses } = useClasses();
   const { students } = useStudents();
   
   const form = useForm<EnrollmentFormData>({
@@ -99,6 +101,15 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
             Enregistrez une nouvelle inscription ou une réinscription
           </DialogDescription>
         </DialogHeader>
+
+        {!loadingClasses && classes.length === 0 && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="ml-2">
+              Aucune classe n'a été créée. Veuillez d'abord créer des classes dans le menu "Classes" avant d'enregistrer des inscriptions.
+            </AlertDescription>
+          </Alert>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
@@ -304,16 +315,26 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{isNewEnrollment ? "Classe demandée" : "Nouvelle classe"} *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                      disabled={loadingClasses || classes.length === 0}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner" />
+                          <SelectValue placeholder={
+                            loadingClasses 
+                              ? "Chargement..." 
+                              : classes.length === 0 
+                                ? "Aucune classe disponible" 
+                                : "Sélectionner"
+                          } />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {classes.map((cls) => (
                           <SelectItem key={cls.id} value={cls.name}>
-                            {cls.name}
+                            {cls.name} ({cls.level})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -388,7 +409,7 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading || classes.length === 0}>
                 {loading ? "Enregistrement..." : "Enregistrer l'inscription"}
               </Button>
             </div>
