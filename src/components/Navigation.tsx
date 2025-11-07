@@ -66,7 +66,7 @@ const Navigation = () => {
               <img 
                 src={eduKashLogo} 
                 alt="EduKash" 
-                className="relative h-20 sm:h-28 w-auto object-contain"
+                className="relative h-24 sm:h-32 w-auto object-contain"
               />
             </div>
           </Link>

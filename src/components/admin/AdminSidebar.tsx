@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, Link } from "react-router-dom";
 import { 
   LayoutDashboard,
   School,
@@ -60,7 +60,9 @@ export function AdminSidebar() {
       <div className="p-4 border-b flex items-center justify-center">
         {(open || isMobile) ? (
           <div className="flex items-center gap-2">
-            <img src={eduKashLogo} alt="EduKash" className="h-16 w-auto" />
+            <Link to="/">
+              <img src={eduKashLogo} alt="EduKash" className="h-20 w-auto hover:opacity-80 transition-opacity cursor-pointer" />
+            </Link>
             <div>
               <p className="text-sm font-semibold text-primary">Super Admin</p>
             </div>
@@ -120,7 +122,9 @@ export function AdminSidebarMobile({ children }: { children: React.ReactNode }) 
       <SheetContent side="left" className="w-[280px] p-0 z-50">
         <SheetHeader className="p-4 border-b">
           <SheetTitle className="flex items-center gap-2">
-            <img src={eduKashLogo} alt="EduKash" className="h-14 w-auto" />
+            <Link to="/">
+              <img src={eduKashLogo} alt="EduKash" className="h-18 w-auto hover:opacity-80 transition-opacity cursor-pointer" />
+            </Link>
             <span className="text-base font-semibold text-primary">Super Admin</span>
           </SheetTitle>
         </SheetHeader>

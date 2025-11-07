@@ -54,11 +54,13 @@ const Home = () => {
       <header className="absolute top-0 left-0 right-0 z-20 backdrop-blur-sm bg-background/80 border-b border-border/50">
         <div className="h-1 bg-[image:var(--gradient-hero)]"></div>
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <img 
-            src={eduKashLogo} 
-            alt="EduKash" 
-            className="h-14 w-auto object-contain animate-fade-in"
-          />
+          <Link to="/">
+            <img 
+              src={eduKashLogo} 
+              alt="EduKash" 
+              className="h-20 w-auto object-contain animate-fade-in hover:opacity-80 transition-opacity cursor-pointer"
+            />
+          </Link>
           <Link to="/auth">
             <Button variant="secondary" className="gap-2 shadow-soft hover:shadow-card transition-all duration-300">
               <LogIn className="h-4 w-4" />
