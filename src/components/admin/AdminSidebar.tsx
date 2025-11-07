@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard,
@@ -104,6 +105,7 @@ export function AdminSidebar() {
 
 export function AdminSidebarMobile({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const [open, setOpen] = useState(false);
 
   const isActive = (path: string, exact?: boolean) => {
     if (exact) return location.pathname === path;
@@ -111,11 +113,11 @@ export function AdminSidebarMobile({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         {children}
       </SheetTrigger>
-      <SheetContent side="left" className="w-[280px] p-0">
+      <SheetContent side="left" className="w-[280px] p-0 z-50">
         <SheetHeader className="p-4 border-b">
           <SheetTitle className="flex items-center gap-2">
             <img src={eduKashLogo} alt="EduKash" className="h-14 w-auto" />
@@ -131,6 +133,7 @@ export function AdminSidebarMobile({ children }: { children: React.ReactNode }) 
                   key={item.title}
                   to={item.url}
                   end={item.exact}
+                  onClick={() => setOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
