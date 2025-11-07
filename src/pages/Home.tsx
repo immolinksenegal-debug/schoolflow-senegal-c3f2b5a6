@@ -79,37 +79,30 @@ const Home = () => {
           />
         </div>
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/90 to-primary/80"></div>
-        
-        {/* Animated Pattern Overlay */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[image:repeating-linear-gradient(45deg,transparent,transparent_10px,hsl(var(--primary-foreground))_10px,hsl(var(--primary-foreground))_11px)]"></div>
-        </div>
+        {/* Subtle Gradient Overlay - only on sides for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/20"></div>
 
         {/* Floating Elements */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-secondary/20 rounded-full blur-2xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-32 h-32 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-        <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-primary-foreground/10 rounded-full blur-2xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-20 left-10 w-20 h-20 bg-secondary/10 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
         
         <div className="container mx-auto px-4 py-20 relative z-10">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
             {/* Hero Content */}
             <div className="flex-1 text-center lg:text-left space-y-6 animate-fade-in">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-white text-sm font-medium border border-white/30 shadow-glow">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur-md text-primary text-sm font-medium border border-white/30 shadow-glow">
                 <Shield className="h-4 w-4" />
-                Gestion Scolaire et Paiements
               </div>
               
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-lg">
                 Simplifiez la gestion de votre{" "}
                 <span className="relative inline-block">
                   <span className="relative z-10">établissement</span>
-                  <span className="absolute bottom-2 left-0 w-full h-3 bg-secondary/50 -rotate-1"></span>
+                  <span className="absolute bottom-2 left-0 w-full h-3 bg-secondary -rotate-1"></span>
                 </span>
               </h1>
               
-              <p className="text-lg md:text-xl text-primary-foreground/90 max-w-2xl mx-auto lg:mx-0">
+              <p className="text-lg md:text-xl text-white drop-shadow-md max-w-2xl mx-auto lg:mx-0 bg-black/20 backdrop-blur-sm p-4 rounded-lg">
                 EduKash permet de gérer inscriptions, paiements et finances en toute simplicité. 
                 Centralisez vos données, optimisez vos processus et gagnez en efficacité.
               </p>
@@ -129,16 +122,16 @@ const Home = () => {
               {stats.map((stat, index) => (
                 <div 
                   key={index}
-                  className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 hover-scale shadow-card hover:shadow-elegant min-w-[280px]"
+                  className="bg-white/95 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white transition-all duration-300 hover-scale shadow-card hover:shadow-elegant min-w-[280px]"
                   style={{animationDelay: `${0.3 + index * 0.1}s`}}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="bg-secondary/20 p-3 rounded-xl">
-                      <stat.icon className="h-8 w-8 text-secondary" />
+                    <div className="bg-primary/10 p-3 rounded-xl">
+                      <stat.icon className="h-8 w-8 text-primary" />
                     </div>
                     <div>
-                      <div className="text-3xl font-bold text-white">{stat.value}</div>
-                      <div className="text-sm text-white/80">{stat.label}</div>
+                      <div className="text-3xl font-bold text-foreground">{stat.value}</div>
+                      <div className="text-sm text-muted-foreground">{stat.label}</div>
                     </div>
                   </div>
                 </div>
