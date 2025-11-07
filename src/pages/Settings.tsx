@@ -56,18 +56,18 @@ const Settings = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Paramètres</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Paramètres</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gérez les paramètres de votre établissement et votre profil
           </p>
         </div>
 
         <Tabs defaultValue="school" className="w-full">
-          <TabsList className="grid w-full max-w-2xl grid-cols-4">
-            <TabsTrigger value="school">École</TabsTrigger>
-            <TabsTrigger value="profile">Profil</TabsTrigger>
-            <TabsTrigger value="reminders">Relances</TabsTrigger>
-            <TabsTrigger value="preferences">Préférences</TabsTrigger>
+          <TabsList className="grid w-full max-w-full sm:max-w-2xl grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsTrigger value="school" className="text-xs sm:text-sm px-2 py-2">École</TabsTrigger>
+            <TabsTrigger value="profile" className="text-xs sm:text-sm px-2 py-2">Profil</TabsTrigger>
+            <TabsTrigger value="reminders" className="text-xs sm:text-sm px-2 py-2">Relances</TabsTrigger>
+            <TabsTrigger value="preferences" className="text-xs sm:text-sm px-2 py-2">Préférences</TabsTrigger>
           </TabsList>
 
           <TabsContent value="school" className="space-y-4 mt-6">

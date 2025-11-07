@@ -140,17 +140,17 @@ const Dashboard = () => {
         {/* Header avec design moderne */}
           <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 rounded-2xl p-4 sm:p-6 shadow-lg">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+              <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                   <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-1">
+                <div className="flex-1 sm:flex-initial">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-1">
                     Tableau de bord
                   </h1>
                   <p className="text-muted-foreground flex items-center gap-2 text-xs sm:text-sm">
-                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                    {format(new Date(), "EEEE dd MMMM yyyy", { locale: fr })}
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="truncate">{format(new Date(), "EEEE dd MMMM yyyy", { locale: fr })}</span>
                   </p>
                 </div>
               </div>
@@ -271,26 +271,31 @@ const Dashboard = () => {
                   recentPayments.map((payment) => (
                     <div
                       key={payment.id}
-                      className="flex items-center justify-between bg-card hover:bg-muted/50 p-4 rounded-xl transition-all duration-300 border shadow-sm hover:shadow-md"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between bg-card hover:bg-muted/50 p-3 sm:p-4 rounded-xl transition-all duration-300 border shadow-sm hover:shadow-md gap-3 sm:gap-0"
                     >
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                             {payment.students?.full_name?.charAt(0) || "E"}
                           </div>
-                          <p className="font-semibold text-foreground">
+                          <p className="font-semibold text-foreground truncate flex-1">
                             {payment.students?.full_name || "Élève"}
                           </p>
-                          {getPaymentTypeBadge(payment.payment_type)}
+                          <div className="hidden sm:block">
+                            {getPaymentTypeBadge(payment.payment_type)}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground ml-10">
-                          <span className="font-medium bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">{payment.students?.class}</span>
-                          <span>•</span>
-                          <span>{format(new Date(payment.payment_date), "dd MMM yyyy", { locale: fr })}</span>
+                        <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground ml-10 flex-wrap">
+                          <span className="font-medium bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded whitespace-nowrap">{payment.students?.class}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="whitespace-nowrap">{format(new Date(payment.payment_date), "dd MMM yyyy", { locale: fr })}</span>
+                          <div className="sm:hidden">
+                            {getPaymentTypeBadge(payment.payment_type)}
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right space-y-2 ml-4">
-                        <p className="font-bold text-lg text-primary">
+                      <div className="text-left sm:text-right space-y-2 sm:ml-4 pl-10 sm:pl-0">
+                        <p className="font-bold text-base sm:text-lg text-primary">
                           {Number(payment.amount).toLocaleString()} FCFA
                         </p>
                         <Badge variant="outline" className="text-xs bg-white dark:bg-slate-800">
