@@ -75,8 +75,8 @@ export const WhatsAppSupport = () => {
 
   const handleWhatsAppClick = () => {
     if (!isDragging) {
-      // Remplacez ce numéro par votre numéro WhatsApp Business
-      const phoneNumber = "221776543210"; // Format: code pays + numéro sans +
+      // Numéro WhatsApp Business pour le support
+      const phoneNumber = "221775445953"; // Format: code pays + numéro sans +
       const message = encodeURIComponent("Bonjour, j'ai besoin d'aide avec EduKash");
       window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
     }
