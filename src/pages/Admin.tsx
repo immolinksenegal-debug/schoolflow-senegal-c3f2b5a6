@@ -15,7 +15,9 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminSidebar, AdminSidebarMobile } from "@/components/admin/AdminSidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Menu } from "lucide-react";
 import { SchoolsManagement } from "@/components/admin/SchoolsManagement";
 import { UsersManagement } from "@/components/admin/UsersManagement";
 import { ReportsPanel } from "@/components/admin/ReportsPanel";
@@ -28,6 +30,7 @@ const Admin = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
   const { isSuperAdmin, isLoading: roleLoading } = useUserRole();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -155,7 +158,15 @@ const Admin = () => {
         <div className="flex-1 flex flex-col">
           <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex h-16 items-center gap-4 px-6">
-              <SidebarTrigger />
+              {isMobile ? (
+                <AdminSidebarMobile>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </AdminSidebarMobile>
+              ) : (
+                <SidebarTrigger />
+              )}
               <div className="flex-1" />
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
