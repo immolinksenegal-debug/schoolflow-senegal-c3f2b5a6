@@ -68,10 +68,19 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Modern Hero Banner with Gradient Overlay */}
+      {/* Modern Hero Banner with Image */}
       <section className="relative overflow-hidden min-h-[600px] flex items-center">
-        {/* Gradient Background */}
-        <div className="absolute inset-0 bg-[image:var(--gradient-hero)]"></div>
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img 
+            src={bannerImage} 
+            alt="Parents d'élèves effectuant un paiement de scolarité"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/90 to-primary/80"></div>
         
         {/* Animated Pattern Overlay */}
         <div className="absolute inset-0 opacity-10">
