@@ -59,13 +59,13 @@ export function AdminSidebar() {
       <div className="p-4 border-b flex items-center justify-center">
         {(open || isMobile) ? (
           <div className="flex items-center gap-2">
-            <img src={eduKashLogo} alt="EduKash" className="h-12 w-auto" />
+            <img src={eduKashLogo} alt="EduKash" className="h-16 w-auto" />
             <div>
-              <p className="text-xs font-semibold text-primary">Super Admin</p>
+              <p className="text-sm font-semibold text-primary">Super Admin</p>
             </div>
           </div>
         ) : (
-          <Shield className="h-6 w-6 text-primary" />
+          <Shield className="h-8 w-8 text-primary" />
         )}
       </div>
 
@@ -118,8 +118,8 @@ export function AdminSidebarMobile({ children }: { children: React.ReactNode }) 
       <SheetContent side="left" className="w-[280px] p-0">
         <SheetHeader className="p-4 border-b">
           <SheetTitle className="flex items-center gap-2">
-            <img src={eduKashLogo} alt="EduKash" className="h-10 w-auto" />
-            <span className="text-sm font-semibold text-primary">Super Admin</span>
+            <img src={eduKashLogo} alt="EduKash" className="h-14 w-auto" />
+            <span className="text-base font-semibold text-primary">Super Admin</span>
           </SheetTitle>
         </SheetHeader>
         <div className="px-4 py-6 space-y-4">
