@@ -72,6 +72,7 @@ export type Database = {
       }
       classes: {
         Row: {
+          academic_year: string
           annual_tuition: number | null
           capacity: number
           created_at: string
@@ -87,6 +88,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          academic_year?: string
           annual_tuition?: number | null
           capacity?: number
           created_at?: string
@@ -102,6 +104,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          academic_year?: string
           annual_tuition?: number | null
           capacity?: number
           created_at?: string

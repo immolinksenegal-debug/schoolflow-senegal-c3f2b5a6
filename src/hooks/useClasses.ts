@@ -8,6 +8,7 @@ export interface Class {
   school_id: string;
   name: string;
   level: string;
+  academic_year: string;
   capacity: number;
   teacher_name?: string;
   room_number?: string;
@@ -22,6 +23,7 @@ export interface Class {
 export interface CreateClassData {
   name: string;
   level: string;
+  academic_year: string;
   capacity: number;
   teacher_name?: string;
   room_number?: string;
@@ -79,7 +81,11 @@ export const useClasses = () => {
     },
     onError: (error: any) => {
       console.error("Error creating class:", error);
-      toast.error(error.message || "Erreur lors de la création de la classe");
+      if (error.message?.includes('unique_class_per_year')) {
+        toast.error("Une classe avec ce nom existe déjà pour cette année académique");
+      } else {
+        toast.error(error.message || "Erreur lors de la création de la classe");
+      }
     },
   });
 
