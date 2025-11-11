@@ -118,8 +118,15 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
     const student = students.find(s => s.id === studentId);
     if (student) {
       const studentClass = classes.find(c => c.name === student.class);
-      if (studentClass?.monthly_tuition) {
+      const currentPaymentType = form.getValues('payment_type');
+      
+      // Auto-fill amount based on payment type
+      if (currentPaymentType === 'monthly_tuition' && studentClass?.monthly_tuition) {
         form.setValue('amount', studentClass.monthly_tuition);
+      } else if (currentPaymentType === 'registration' && studentClass?.registration_fee) {
+        form.setValue('amount', studentClass.registration_fee);
+      } else if (currentPaymentType === 'tuition' && studentClass?.annual_tuition) {
+        form.setValue('amount', studentClass.annual_tuition);
       }
     }
   };
