@@ -102,6 +102,7 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
   const isNewEnrollment = enrollmentType === 'new';
   const useExistingParent = form.watch('use_existing_parent');
   const parentPhone = form.watch('parent_phone');
+  const requestedClass = form.watch('requested_class');
 
   // Extract unique parents from existing students
   useEffect(() => {
@@ -138,6 +139,16 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
       setFoundParents([]);
     }
   }, [parentPhone, existingParents, useExistingParent]);
+
+  // Auto-fill enrollment fee when class is selected
+  useEffect(() => {
+    if (requestedClass && classes.length > 0) {
+      const selectedClass = classes.find(c => c.name === requestedClass);
+      if (selectedClass && selectedClass.registration_fee) {
+        form.setValue('enrollment_fee', selectedClass.registration_fee);
+      }
+    }
+  }, [requestedClass, classes, form]);
 
   const handleSelectExistingParent = (parent: ParentInfo) => {
     form.setValue('parent_name', parent.parent_name);
