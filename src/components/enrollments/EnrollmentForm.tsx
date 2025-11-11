@@ -20,13 +20,13 @@ const enrollmentSchema = z.object({
   use_existing_parent: z.boolean().optional(),
   existing_parent_phone: z.string().optional(),
   // New student fields
-  full_name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100).optional(),
+  full_name: z.string().optional(),
   date_of_birth: z.string().optional(),
   phone: z.string().max(20).optional(),
   email: z.string().email("Email invalide").optional().or(z.literal("")),
   address: z.string().max(200).optional(),
-  parent_name: z.string().min(2).max(100).optional(),
-  parent_phone: z.string().min(2).max(20).optional(),
+  parent_name: z.string().optional(),
+  parent_phone: z.string().optional(),
   parent_email: z.string().email("Email invalide").optional().or(z.literal("")),
   // Enrollment fields
   previous_class: z.string().optional(),
@@ -34,6 +34,30 @@ const enrollmentSchema = z.object({
   enrollment_fee: z.number().min(0).optional(),
   payment_status: z.enum(['pending', 'partial', 'paid']).default('pending'),
   notes: z.string().max(500).optional(),
+}).refine((data) => {
+  // Pour les nouvelles inscriptions, valider les champs requis
+  if (data.enrollment_type === 'new') {
+    if (!data.full_name || data.full_name.length < 2) {
+      return false;
+    }
+    if (!data.date_of_birth) {
+      return false;
+    }
+    if (!data.parent_name || data.parent_name.length < 2) {
+      return false;
+    }
+    if (!data.parent_phone || data.parent_phone.length < 2) {
+      return false;
+    }
+  }
+  // Pour les réinscriptions, valider que student_id est présent
+  if (data.enrollment_type === 're-enrollment' && !data.student_id) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Veuillez remplir tous les champs obligatoires",
+  path: ["enrollment_type"],
 });
 
 interface ParentInfo {
