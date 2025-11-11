@@ -20,7 +20,10 @@ export const useStudentLimit = (schoolId?: string) => {
         _school_id: schoolId,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error checking student limit:", error);
+        throw error;
+      }
       
       if (!data) return null;
       
@@ -38,6 +41,7 @@ export const useStudentLimit = (schoolId?: string) => {
         is_unlimited: isUnlimited,
       };
     },
-    enabled: !!schoolId,
+    enabled: !!schoolId && schoolId !== "undefined",
+    retry: false,
   });
 };
