@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserPlus, RefreshCw, Search, Eye, Check, FileText } from "lucide-react";
+import { UserPlus, RefreshCw, Search, Eye, Check, FileText, Edit, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +23,7 @@ import {
 import StatCard from "@/components/StatCard";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import { EnrollmentForm } from "@/components/enrollments/EnrollmentForm";
+import { EnrollmentEditDialog } from "@/components/enrollments/EnrollmentEditDialog";
 import { EnrollmentApprovalDialog } from "@/components/enrollments/EnrollmentApprovalDialog";
 import { PaymentReceipt } from "@/components/payments/PaymentReceipt";
 import { useSchool } from "@/hooks/useSchool";
@@ -30,7 +31,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const Enrollments = () => {
-  const { enrollments, isLoading, createEnrollment, approveEnrollment } = useEnrollments();
+  const { enrollments, isLoading, createEnrollment, approveEnrollment, updateEnrollment, deleteEnrollment } = useEnrollments();
   const { school } = useSchool();
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewEnrollmentOpen, setIsNewEnrollmentOpen] = useState(false);
@@ -39,6 +40,8 @@ const Enrollments = () => {
   const [approvalData, setApprovalData] = useState<any>(null);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const [receiptPayment, setReceiptPayment] = useState<any>(null);
+  const [editingEnrollment, setEditingEnrollment] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const newEnrollments = enrollments.filter(e => e.enrollment_type === 'new');
   const reEnrollments = enrollments.filter(e => e.enrollment_type === 're-enrollment');
@@ -140,6 +143,31 @@ const Enrollments = () => {
         }
       },
     });
+  };
+
+  const handleEdit = (enrollment: any) => {
+    setEditingEnrollment(enrollment);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateEnrollment = (data: any) => {
+    if (!editingEnrollment) return;
+    
+    updateEnrollment.mutate(
+      { id: editingEnrollment.id, ...data },
+      {
+        onSuccess: () => {
+          setIsEditDialogOpen(false);
+          setEditingEnrollment(null);
+        },
+      }
+    );
+  };
+
+  const handleDelete = (enrollmentId: string) => {
+    if (window.confirm("Êtes-vous sûr de vouloir annuler cette inscription ? Cette action est irréversible.")) {
+      deleteEnrollment.mutate(enrollmentId);
+    }
   };
 
   const filteredNewEnrollments = newEnrollments.filter(e => {
@@ -257,13 +285,41 @@ const Enrollments = () => {
                             <TableCell>
                               <div className="flex gap-2">
                                 {enrollment.status === "pending" && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700"
+                                      onClick={() => handleApprove(enrollment.id)}
+                                    >
+                                      <Check className="h-3 w-3 mr-1" />
+                                      Approuver
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleEdit(enrollment)}
+                                    >
+                                      <Edit className="h-3 w-3 mr-1" />
+                                      Modifier
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleDelete(enrollment.id)}
+                                    >
+                                      <X className="h-3 w-3 mr-1" />
+                                      Annuler
+                                    </Button>
+                                  </>
+                                )}
+                                {enrollment.status === "approved" && (
                                   <Button
                                     size="sm"
-                                    className="bg-green-600 hover:bg-green-700"
-                                    onClick={() => handleApprove(enrollment.id)}
+                                    variant="destructive"
+                                    onClick={() => handleDelete(enrollment.id)}
                                   >
-                                    <Check className="h-3 w-3 mr-1" />
-                                    Approuver
+                                    <X className="h-3 w-3 mr-1" />
+                                    Annuler
                                   </Button>
                                 )}
                               </div>
@@ -341,13 +397,41 @@ const Enrollments = () => {
                             <TableCell>
                               <div className="flex gap-2">
                                 {enrollment.status === "pending" && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700"
+                                      onClick={() => handleApprove(enrollment.id)}
+                                    >
+                                      <Check className="h-3 w-3 mr-1" />
+                                      Approuver
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleEdit(enrollment)}
+                                    >
+                                      <Edit className="h-3 w-3 mr-1" />
+                                      Modifier
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleDelete(enrollment.id)}
+                                    >
+                                      <X className="h-3 w-3 mr-1" />
+                                      Annuler
+                                    </Button>
+                                  </>
+                                )}
+                                {enrollment.status === "approved" && (
                                   <Button
                                     size="sm"
-                                    className="bg-green-600 hover:bg-green-700"
-                                    onClick={() => handleApprove(enrollment.id)}
+                                    variant="destructive"
+                                    onClick={() => handleDelete(enrollment.id)}
                                   >
-                                    <Check className="h-3 w-3 mr-1" />
-                                    Approuver
+                                    <X className="h-3 w-3 mr-1" />
+                                    Annuler
                                   </Button>
                                 )}
                               </div>
@@ -368,6 +452,14 @@ const Enrollments = () => {
         open={isNewEnrollmentOpen}
         onOpenChange={setIsNewEnrollmentOpen}
         onSubmit={handleCreateEnrollment}
+        loading={createEnrollment.isPending}
+      />
+
+      <EnrollmentEditDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        enrollment={editingEnrollment}
+        onSubmit={handleUpdateEnrollment}
         loading={createEnrollment.isPending}
       />
 
