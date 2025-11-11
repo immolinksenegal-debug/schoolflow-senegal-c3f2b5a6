@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -10,11 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useClasses } from "@/hooks/useClasses";
 import { useStudents } from "@/hooks/useStudents";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const enrollmentSchema = z.object({
   enrollment_type: z.enum(['new', 're-enrollment']),
   student_id: z.string().optional(),
+  use_existing_parent: z.boolean().optional(),
+  existing_parent_phone: z.string().optional(),
   // New student fields
   full_name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100).optional(),
   date_of_birth: z.string().optional(),
@@ -32,6 +36,13 @@ const enrollmentSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+interface ParentInfo {
+  parent_name: string;
+  parent_phone: string;
+  parent_email: string;
+  student_count: number;
+}
+
 type EnrollmentFormData = z.infer<typeof enrollmentSchema>;
 
 interface EnrollmentFormProps {
@@ -44,6 +55,9 @@ interface EnrollmentFormProps {
 export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: EnrollmentFormProps) => {
   const { classes, isLoading: loadingClasses } = useClasses();
   const { students } = useStudents();
+  const [existingParents, setExistingParents] = useState<ParentInfo[]>([]);
+  const [searchParentPhone, setSearchParentPhone] = useState("");
+  const [foundParents, setFoundParents] = useState<ParentInfo[]>([]);
   
   const form = useForm<EnrollmentFormData>({
     resolver: zodResolver(enrollmentSchema),
@@ -52,11 +66,58 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
       requested_class: "",
       payment_status: 'pending',
       enrollment_fee: 0,
+      use_existing_parent: false,
     },
   });
 
   const enrollmentType = form.watch('enrollment_type');
   const isNewEnrollment = enrollmentType === 'new';
+  const useExistingParent = form.watch('use_existing_parent');
+  const parentPhone = form.watch('parent_phone');
+
+  // Extract unique parents from existing students
+  useEffect(() => {
+    if (students.length > 0) {
+      const parentsMap = new Map<string, ParentInfo>();
+      
+      students.forEach(student => {
+        const key = student.parent_phone;
+        if (parentsMap.has(key)) {
+          const existing = parentsMap.get(key)!;
+          parentsMap.set(key, { ...existing, student_count: existing.student_count + 1 });
+        } else {
+          parentsMap.set(key, {
+            parent_name: student.parent_name,
+            parent_phone: student.parent_phone,
+            parent_email: student.parent_email || "",
+            student_count: 1,
+          });
+        }
+      });
+      
+      setExistingParents(Array.from(parentsMap.values()));
+    }
+  }, [students]);
+
+  // Auto-detect existing parent when typing phone
+  useEffect(() => {
+    if (parentPhone && parentPhone.length >= 8 && !useExistingParent) {
+      const matches = existingParents.filter(p => 
+        p.parent_phone.includes(parentPhone)
+      );
+      setFoundParents(matches);
+    } else {
+      setFoundParents([]);
+    }
+  }, [parentPhone, existingParents, useExistingParent]);
+
+  const handleSelectExistingParent = (parent: ParentInfo) => {
+    form.setValue('parent_name', parent.parent_name);
+    form.setValue('parent_phone', parent.parent_phone);
+    form.setValue('parent_email', parent.parent_email);
+    form.setValue('use_existing_parent', true);
+    setFoundParents([]);
+  };
 
   const handleSubmit = (data: EnrollmentFormData) => {
     const { enrollment_type, student_id, full_name, date_of_birth, phone, email, 
@@ -235,48 +296,114 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
                   )}
                 />
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="parent_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nom du parent/tuteur *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="M. ou Mme..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium">Informations parent/tuteur</h4>
+                    {useExistingParent && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Search className="h-3 w-3" />
+                        Parent existant
+                      </Badge>
                     )}
-                  />
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="parent_phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Téléphone parent *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="77 987 65 43" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="parent_phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Téléphone parent *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="77 987 65 43" 
+                              {...field}
+                              disabled={useExistingParent}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                          
+                          {foundParents.length > 0 && !useExistingParent && (
+                            <div className="mt-2 p-3 bg-muted/50 rounded-lg border border-border">
+                              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                Parent(s) existant(s) trouvé(s)
+                              </p>
+                              <div className="space-y-2">
+                                {foundParents.map((parent, idx) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => handleSelectExistingParent(parent)}
+                                    className="w-full text-left p-2 text-xs bg-background hover:bg-accent rounded border border-border transition-colors"
+                                  >
+                                    <div className="font-medium">{parent.parent_name}</div>
+                                    <div className="text-muted-foreground">{parent.parent_phone}</div>
+                                    <div className="text-muted-foreground">
+                                      {parent.student_count} élève{parent.student_count > 1 ? 's' : ''} déjà inscrit{parent.student_count > 1 ? 's' : ''}
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="parent_email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email parent</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="parent@email.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="parent_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nom du parent/tuteur *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="M. ou Mme..." 
+                              {...field}
+                              disabled={useExistingParent}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="parent_email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email parent</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="email" 
+                              placeholder="parent@email.com" 
+                              {...field}
+                              disabled={useExistingParent}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {useExistingParent && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        form.setValue('use_existing_parent', false);
+                        form.setValue('parent_name', '');
+                        form.setValue('parent_phone', '');
+                        form.setValue('parent_email', '');
+                      }}
+                    >
+                      Saisir un nouveau parent
+                    </Button>
+                  )}
                 </div>
               </>
             )}
