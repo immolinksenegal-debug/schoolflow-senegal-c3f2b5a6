@@ -150,12 +150,15 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
   };
 
   const handleSearchParent = () => {
-    if (searchParentPhone.length >= 8) {
-      const matches = existingParents.filter(p => 
-        p.parent_phone.includes(searchParentPhone)
-      );
-      setFoundParents(matches);
+    if (!searchParentPhone || searchParentPhone.length < 8) {
+      setFoundParents([]);
+      return;
     }
+    
+    const matches = existingParents.filter(p => 
+      p.parent_phone.includes(searchParentPhone)
+    );
+    setFoundParents(matches);
   };
 
   const handleHasExistingParentChange = (value: string) => {
