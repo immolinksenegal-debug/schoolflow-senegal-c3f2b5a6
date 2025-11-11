@@ -444,18 +444,6 @@ const Students = () => {
                               <p className="font-medium text-foreground">{student.full_name}</p>
                               <p className="text-xs text-muted-foreground">{student.email}</p>
                             </div>
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className="gap-1.5 bg-primary hover:bg-primary/90"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setPayingStudent(student);
-                              }}
-                            >
-                              <Wallet className="h-4 w-4" />
-                              Payer
-                            </Button>
                           </div>
                         </TableCell>
                         <TableCell className="font-medium text-primary">{student.matricule}</TableCell>
