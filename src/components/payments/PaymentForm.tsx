@@ -91,11 +91,25 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
   const paymentType = form.watch('payment_type');
   const showMonthSelector = paymentType === 'monthly_tuition';
 
-  // Auto-select class when payment data is provided with student info
+  // Auto-fill form when editing payment
   useEffect(() => {
-    if (paymentData?.students?.class) {
-      setSelectedClass(paymentData.students.class);
-      form.setValue('student_id', paymentData.student_id);
+    if (paymentData) {
+      // Set class
+      if (paymentData.students?.class) {
+        setSelectedClass(paymentData.students.class);
+      }
+      
+      // Set all form values
+      form.reset({
+        student_id: paymentData.student_id,
+        amount: paymentData.amount,
+        payment_method: paymentData.payment_method as any,
+        payment_type: paymentData.payment_type as any,
+        payment_period: paymentData.payment_period || "",
+        payment_date: paymentData.payment_date,
+        transaction_reference: paymentData.transaction_reference || "",
+        notes: paymentData.notes || "",
+      });
     }
   }, [paymentData, form]);
 
@@ -141,18 +155,48 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            {/* Auto-generated reference display */}
-            <div className="p-3 bg-muted/50 rounded-lg border border-border">
-              <p className="text-sm font-medium text-muted-foreground mb-1">
-                Référence de paiement (générée automatiquement)
-              </p>
-              <p className="text-lg font-mono font-bold text-primary">
-                REC{new Date().getFullYear().toString().slice(-2)}XXXXXX
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Le numéro sera généré lors de l'enregistrement
-              </p>
-            </div>
+            {/* Student Info Display when editing */}
+            {paymentData?.students && (
+              <div className="p-4 bg-primary/10 rounded-lg border-2 border-primary/30">
+                <p className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-primary rounded-full"></span>
+                  Informations de l&apos;élève
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Nom complet</p>
+                    <p className="font-semibold text-foreground">{paymentData.students.full_name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Matricule</p>
+                    <p className="font-semibold text-foreground">{paymentData.students.matricule}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Classe</p>
+                    <p className="font-semibold text-foreground">{paymentData.students.class}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">N° Reçu</p>
+                    <p className="font-semibold text-primary">{paymentData.receipt_number}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Auto-generated reference display for new payments */}
+            {!paymentData && (
+              <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                <p className="text-sm font-medium text-muted-foreground mb-1">
+                  Référence de paiement (générée automatiquement)
+                </p>
+                <p className="text-lg font-mono font-bold text-primary">
+                  REC{new Date().getFullYear().toString().slice(-2)}XXXXXX
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Le numéro sera généré lors de l'enregistrement
+                </p>
+              </div>
+            )}
 
             {/* Class Selection First */}
             <div className="space-y-2">
