@@ -1,3 +1,4 @@
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -101,10 +102,21 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
       schedule: classData?.schedule || "",
       registration_fee: classData?.registration_fee || 0,
       monthly_tuition: classData?.monthly_tuition || 0,
-      study_months: 9,
+      study_months: classData?.study_months || 9,
       annual_tuition: classData?.annual_tuition || 0,
     },
   });
+
+  // Recalculer lors de l'édition si classData change
+  React.useEffect(() => {
+    if (classData) {
+      const monthlyTuition = classData.monthly_tuition || 0;
+      const studyMonths = classData.study_months || 9;
+      const registrationFee = classData.registration_fee || 0;
+      const calculated = (monthlyTuition * studyMonths) + registrationFee;
+      form.setValue("annual_tuition", calculated);
+    }
+  }, [classData, form]);
 
   // Calculer automatiquement la scolarité annuelle
   const calculateAnnualTuition = () => {

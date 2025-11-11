@@ -15,6 +15,7 @@ export interface Class {
   schedule?: string;
   registration_fee?: number;
   monthly_tuition?: number;
+  study_months?: number;
   annual_tuition?: number;
   created_at: string;
   updated_at: string;
@@ -30,6 +31,7 @@ export interface CreateClassData {
   schedule?: string;
   registration_fee?: number;
   monthly_tuition?: number;
+  study_months?: number;
   annual_tuition?: number;
 }
 

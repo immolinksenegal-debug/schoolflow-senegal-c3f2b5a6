@@ -84,6 +84,7 @@ export type Database = {
           room_number: string | null
           schedule: string | null
           school_id: string
+          study_months: number | null
           teacher_name: string | null
           updated_at: string
         }
@@ -100,6 +101,7 @@ export type Database = {
           room_number?: string | null
           schedule?: string | null
           school_id: string
+          study_months?: number | null
           teacher_name?: string | null
           updated_at?: string
         }
@@ -116,6 +118,7 @@ export type Database = {
           room_number?: string | null
           schedule?: string | null
           school_id?: string
+          study_months?: number | null
           teacher_name?: string | null
           updated_at?: string
         }
