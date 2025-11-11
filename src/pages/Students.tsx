@@ -771,29 +771,39 @@ const Students = () => {
         </Dialog>
 
         {/* Dialog pour procéder au paiement */}
-        {payingStudent && (
-          <PaymentForm
-            open={!!payingStudent}
-            onOpenChange={() => setPayingStudent(null)}
-            onSubmit={handlePayment}
-            loading={createPayment.isPending}
-            paymentData={{
-              student_id: payingStudent.id,
-              amount: classes.find(c => c.name === payingStudent.class)?.monthly_tuition || 0,
-              payment_method: 'cash',
-              payment_type: 'tuition',
-              payment_date: new Date().toISOString().split('T')[0],
-              payment_period: '',
-              transaction_reference: '',
-              notes: '',
-              students: {
-                full_name: payingStudent.full_name,
-                matricule: payingStudent.matricule,
-                class: payingStudent.class,
-              },
-            } as any}
-          />
-        )}
+        <Dialog open={!!payingStudent} onOpenChange={(open) => !open && setPayingStudent(null)}>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Enregistrer un paiement</DialogTitle>
+              <DialogDescription>
+                Saisir les informations du paiement pour {payingStudent?.full_name}
+              </DialogDescription>
+            </DialogHeader>
+            {payingStudent && (
+              <PaymentForm
+                open={!!payingStudent}
+                onOpenChange={(open) => !open && setPayingStudent(null)}
+                onSubmit={handlePayment}
+                loading={createPayment.isPending}
+                paymentData={{
+                  student_id: payingStudent.id,
+                  amount: classes.find(c => c.name === payingStudent.class)?.monthly_tuition || 0,
+                  payment_method: 'cash',
+                  payment_type: 'monthly_tuition',
+                  payment_date: new Date().toISOString().split('T')[0],
+                  payment_period: '',
+                  transaction_reference: '',
+                  notes: '',
+                  students: {
+                    full_name: payingStudent.full_name,
+                    matricule: payingStudent.matricule,
+                    class: payingStudent.class,
+                  },
+                } as any}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Reçu de paiement */}
         {lastPayment && (
