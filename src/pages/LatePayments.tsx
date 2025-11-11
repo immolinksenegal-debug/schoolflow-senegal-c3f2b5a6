@@ -335,23 +335,30 @@ const LatePayments = () => {
               Recherchez les élèves qui n'ont pas payé pour un mois spécifique
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button 
               variant="outline" 
-              className="gap-2"
+              className="gap-2 bg-white"
               onClick={handlePrint}
               disabled={!showResults || latePayments.length === 0}
             >
               <Printer className="h-4 w-4" />
-              Imprimer
+              <span className="hidden sm:inline">Imprimer la liste</span>
+              <span className="sm:hidden">Imprimer</span>
             </Button>
+            {(!showResults || latePayments.length === 0) && (
+              <p className="text-xs text-muted-foreground self-center hidden md:block">
+                {!showResults ? "(Effectuez d'abord une recherche)" : "(Aucun résultat à imprimer)"}
+              </p>
+            )}
             <Button 
               className="bg-primary hover:bg-primary/90 gap-2"
               onClick={() => setIsReminderDialogOpen(true)}
               disabled={selectedStudents.length === 0}
             >
               <Send className="h-4 w-4" />
-              Relance groupée ({selectedStudents.length})
+              <span className="hidden sm:inline">Relance groupée ({selectedStudents.length})</span>
+              <span className="sm:hidden">Relance ({selectedStudents.length})</span>
             </Button>
           </div>
         </div>
