@@ -82,6 +82,7 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
   const [existingParents, setExistingParents] = useState<ParentInfo[]>([]);
   const [searchParentPhone, setSearchParentPhone] = useState("");
   const [foundParents, setFoundParents] = useState<ParentInfo[]>([]);
+  const [showParentSelector, setShowParentSelector] = useState(false);
   
   const form = useForm<EnrollmentFormData>({
     resolver: zodResolver(enrollmentSchema),
@@ -141,6 +142,17 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
     form.setValue('parent_email', parent.parent_email);
     form.setValue('use_existing_parent', true);
     setFoundParents([]);
+    setShowParentSelector(false);
+    setSearchParentPhone("");
+  };
+
+  const handleSearchParent = () => {
+    if (searchParentPhone.length >= 8) {
+      const matches = existingParents.filter(p => 
+        p.parent_phone.includes(searchParentPhone)
+      );
+      setFoundParents(matches);
+    }
   };
 
   const handleSubmit = (data: EnrollmentFormData) => {
@@ -323,13 +335,77 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium">Informations parent/tuteur</h4>
-                    {useExistingParent && (
-                      <Badge variant="secondary" className="gap-1">
-                        <Search className="h-3 w-3" />
-                        Parent existant
-                      </Badge>
-                    )}
+                    <div className="flex gap-2">
+                      {useExistingParent && (
+                        <Badge variant="secondary" className="gap-1">
+                          <Search className="h-3 w-3" />
+                          Parent existant
+                        </Badge>
+                      )}
+                      {!useExistingParent && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowParentSelector(!showParentSelector)}
+                        >
+                          <Search className="h-4 w-4 mr-2" />
+                          {showParentSelector ? "Annuler" : "Sélectionner parent existant"}
+                        </Button>
+                      )}
+                    </div>
                   </div>
+
+                  {showParentSelector && !useExistingParent && (
+                    <div className="p-4 bg-muted/50 rounded-lg border border-border space-y-3">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Rechercher par téléphone..."
+                          value={searchParentPhone}
+                          onChange={(e) => setSearchParentPhone(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearchParent())}
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={handleSearchParent}
+                        >
+                          <Search className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      {foundParents.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            {foundParents.length} parent(s) trouvé(s)
+                          </p>
+                          {foundParents.map((parent, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleSelectExistingParent(parent)}
+                              className="w-full text-left p-3 text-sm bg-background hover:bg-accent rounded border border-border transition-colors"
+                            >
+                              <div className="font-medium">{parent.parent_name}</div>
+                              <div className="text-muted-foreground">{parent.parent_phone}</div>
+                              {parent.parent_email && (
+                                <div className="text-muted-foreground">{parent.parent_email}</div>
+                              )}
+                              <div className="text-xs text-primary mt-1">
+                                {parent.student_count} élève{parent.student_count > 1 ? 's' : ''} inscrit{parent.student_count > 1 ? 's' : ''}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {searchParentPhone.length >= 8 && foundParents.length === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Aucun parent trouvé avec ce numéro
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <FormField
