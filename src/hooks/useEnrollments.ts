@@ -135,6 +135,8 @@ export const useEnrollments = () => {
         const matricule = `STD${Date.now()}`;
 
         // Préparer les données de l'élève
+        // Les infos parent sont toujours enregistrées (même pour un parent existant)
+        // car plusieurs élèves peuvent avoir le même parent (fratries)
         const studentInsertData: any = {
           full_name: student_data.full_name,
           date_of_birth: student_data.date_of_birth,
@@ -142,26 +144,14 @@ export const useEnrollments = () => {
           email: student_data.email,
           address: student_data.address,
           class: student_data.class,
+          parent_name: student_data.parent_name,
+          parent_phone: student_data.parent_phone,
+          parent_email: student_data.parent_email,
           school_id: profile.school_id,
           matricule,
           status: 'pending',
           payment_status: 'pending',
         };
-
-        // Si c'est un parent existant, on ne duplique pas les infos parent
-        // Les données parent_name, parent_phone, parent_email sont déjà dans la BD via un autre élève
-        // On les ajoute juste pour référence
-        if (!use_existing_parent) {
-          // Nouveau parent: on enregistre toutes les infos
-          studentInsertData.parent_name = student_data.parent_name;
-          studentInsertData.parent_phone = student_data.parent_phone;
-          studentInsertData.parent_email = student_data.parent_email;
-        } else {
-          // Parent existant: on ajoute juste les références (déjà validées comme existantes)
-          studentInsertData.parent_name = student_data.parent_name;
-          studentInsertData.parent_phone = student_data.parent_phone;
-          studentInsertData.parent_email = student_data.parent_email;
-        }
 
         // Create student first
         const { data: newStudent, error: studentError } = await supabase
@@ -177,12 +167,6 @@ export const useEnrollments = () => {
           }
           if (studentError.message.includes('students_phone_unique')) {
             throw new Error(`Ce numéro de téléphone est déjà utilisé par un autre élève`);
-          }
-          if (studentError.message.includes('unique_parent_phone')) {
-            throw new Error(`Ce numéro de parent est déjà utilisé. Veuillez sélectionner le parent existant.`);
-          }
-          if (studentError.message.includes('unique_parent_email')) {
-            throw new Error(`Cet email de parent est déjà utilisé. Veuillez sélectionner le parent existant.`);
           }
           throw studentError;
         }
