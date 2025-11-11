@@ -19,6 +19,7 @@ const classSchema = z.object({
   schedule: z.string().max(500).optional(),
   registration_fee: z.number().min(0, "Le montant doit être positif").optional(),
   monthly_tuition: z.number().min(0, "Le montant doit être positif").optional(),
+  study_months: z.number().min(1, "Le nombre de mois doit être au moins 1").max(12, "Maximum 12 mois").optional(),
   annual_tuition: z.number().min(0, "Le montant doit être positif").optional(),
 });
 
@@ -100,9 +101,20 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
       schedule: classData?.schedule || "",
       registration_fee: classData?.registration_fee || 0,
       monthly_tuition: classData?.monthly_tuition || 0,
+      study_months: 9,
       annual_tuition: classData?.annual_tuition || 0,
     },
   });
+
+  // Calculer automatiquement la scolarité annuelle
+  const calculateAnnualTuition = () => {
+    const monthlyTuition = form.watch("monthly_tuition") || 0;
+    const studyMonths = form.watch("study_months") || 9;
+    const registrationFee = form.watch("registration_fee") || 0;
+    
+    const calculated = (monthlyTuition * studyMonths) + registrationFee;
+    form.setValue("annual_tuition", calculated);
+  };
 
   const handleSubmit = (data: ClassFormData) => {
     onSubmit(data);
@@ -233,7 +245,10 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
                         type="number"
                         placeholder="50000"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => {
+                          field.onChange(parseFloat(e.target.value) || 0);
+                          calculateAnnualTuition();
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -252,7 +267,10 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
                         type="number"
                         placeholder="25000"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => {
+                          field.onChange(parseFloat(e.target.value) || 0);
+                          calculateAnnualTuition();
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -262,16 +280,19 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
 
               <FormField
                 control={form.control}
-                name="annual_tuition"
+                name="study_months"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Scolarité annuelle (FCFA)</FormLabel>
+                    <FormLabel>Nombre de mois</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="300000"
+                        placeholder="9"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => {
+                          field.onChange(parseInt(e.target.value) || 9);
+                          calculateAnnualTuition();
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -279,6 +300,29 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="annual_tuition"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Scolarité annuelle totale (FCFA)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      {...field}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Calculé automatiquement: (Mensualité × Nombre de mois) + Frais d'inscription
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
