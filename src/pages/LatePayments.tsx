@@ -220,7 +220,7 @@ const LatePayments = () => {
           <div className="mb-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6 border border-gray-200">
             <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
               <div className="w-1 h-8 bg-gradient-to-b from-primary to-primary/60 rounded-full"></div>
-              Liste des élèves en retard de paiement
+              Liste des élèves n&apos;ayant pas payé - {monthFilter || "Mois non spécifié"}
             </h2>
             
               <div className="grid grid-cols-3 gap-4 text-sm">
@@ -256,7 +256,7 @@ const LatePayments = () => {
                   <th className="text-left p-3 font-semibold text-sm">Matricule</th>
                   <th className="text-left p-3 font-semibold text-sm">Nom & Prénom</th>
                   <th className="text-left p-3 font-semibold text-sm">Classe</th>
-                  <th className="text-left p-3 font-semibold text-sm">Statut</th>
+                  <th className="text-left p-3 font-semibold text-sm">Mois non payé</th>
                   <th className="text-left p-3 font-semibold text-sm">Parent/Tuteur</th>
                   <th className="text-left p-3 font-semibold text-sm">Téléphone</th>
                 </tr>
@@ -276,18 +276,23 @@ const LatePayments = () => {
                       </span>
                     </td>
                     <td className="p-3 text-sm">
-                      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                        payment.payment_status === 'partial' 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {payment.payment_status === 'partial' ? 'Partiel' : 'En attente'}
+                      <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                        {monthFilter}
                       </span>
                     </td>
                     <td className="p-3 text-sm text-gray-700">{payment.parent_name}</td>
                     <td className="p-3 text-sm font-medium text-gray-800">{payment.parent_phone}</td>
                   </tr>
                 ))}
+                {latePayments.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-gray-500">
+                      {!showResults 
+                        ? "Veuillez effectuer une recherche pour afficher les résultats"
+                        : "Aucun élève trouvé pour cette recherche"}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -480,7 +485,7 @@ const LatePayments = () => {
                       </TableHead>
                       <TableHead className="font-semibold">Élève</TableHead>
                       <TableHead className="font-semibold">Classe</TableHead>
-                      <TableHead className="font-semibold">Statut paiement</TableHead>
+                      <TableHead className="font-semibold">Mois non payé</TableHead>
                       <TableHead className="font-semibold">Parent/Tuteur</TableHead>
                       <TableHead className="font-semibold">Téléphone</TableHead>
                       <TableHead className="font-semibold">Actions</TableHead>
@@ -504,7 +509,11 @@ const LatePayments = () => {
                         <TableCell>
                           <Badge variant="outline">{payment.class}</Badge>
                         </TableCell>
-                        <TableCell>{getPaymentStatusBadge(payment.payment_status)}</TableCell>
+                        <TableCell>
+                          <Badge className="bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300">
+                            {monthFilter}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium text-sm">{payment.parent_name}</p>
