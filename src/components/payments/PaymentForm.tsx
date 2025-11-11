@@ -16,7 +16,7 @@ const paymentSchema = z.object({
   student_id: z.string().min(1, "Veuillez sélectionner un élève"),
   amount: z.number().min(1, "Le montant doit être supérieur à 0"),
   payment_method: z.enum(['cash', 'mobile_money', 'bank_transfer', 'check', 'other']),
-  payment_type: z.enum(['tuition', 'registration', 'exam', 'transport', 'canteen', 'uniform', 'books', 'other']),
+  payment_type: z.enum(['tuition', 'registration', 'exam', 'transport', 'canteen', 'uniform', 'books', 'other', 'monthly_tuition']),
   payment_period: z.string().optional(),
   payment_date: z.string().optional(),
   transaction_reference: z.string().max(100).optional(),
@@ -42,7 +42,8 @@ const PAYMENT_METHODS = [
 ];
 
 const PAYMENT_TYPES = [
-  { value: 'tuition', label: 'Scolarité' },
+  { value: 'monthly_tuition', label: 'Scolarité mensuelle' },
+  { value: 'tuition', label: 'Scolarité (autre)' },
   { value: 'registration', label: 'Inscription' },
   { value: 'exam', label: 'Examens' },
   { value: 'transport', label: 'Transport' },
@@ -79,13 +80,16 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
       student_id: paymentData?.student_id || "",
       amount: paymentData?.amount || 0,
       payment_method: paymentData?.payment_method || 'cash',
-      payment_type: paymentData?.payment_type || 'tuition',
+      payment_type: paymentData?.payment_type || 'monthly_tuition',
       payment_period: paymentData?.payment_period || "",
       payment_date: paymentData?.payment_date || new Date().toISOString().split('T')[0],
       transaction_reference: paymentData?.transaction_reference || "",
       notes: paymentData?.notes || "",
     },
   });
+
+  const paymentType = form.watch('payment_type');
+  const showMonthSelector = paymentType === 'monthly_tuition';
 
   // Auto-select class when payment data is provided with student info
   useEffect(() => {
@@ -355,30 +359,35 @@ export const PaymentForm = ({ open, onOpenChange, onSubmit, paymentData, loading
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="payment_period"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Période concernée</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un mois" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {MONTHS.map((month) => (
-                        <SelectItem key={month.value} value={month.value}>
-                          {month.label} {new Date().getFullYear()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {showMonthSelector && (
+              <FormField
+                control={form.control}
+                name="payment_period"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mois concerné *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un mois" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {MONTHS.map((month) => (
+                          <SelectItem key={month.value} value={month.value}>
+                            {month.label} {new Date().getFullYear()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Chaque mois ne peut être payé qu&apos;une seule fois
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}

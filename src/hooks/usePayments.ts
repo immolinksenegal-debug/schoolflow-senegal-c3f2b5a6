@@ -175,7 +175,11 @@ export const usePayments = () => {
     },
     onError: (error: any) => {
       console.error("Error creating payment:", error);
-      toast.error(error.message || "Erreur lors de l'enregistrement du paiement");
+      if (error.message?.includes('unique_monthly_payment') || error.code === '23505') {
+        toast.error("Ce mois est déjà payé pour cet élève");
+      } else {
+        toast.error(error.message || "Erreur lors de l'enregistrement du paiement");
+      }
     },
   });
 
