@@ -10,7 +10,7 @@ export interface Payment {
   receipt_number: string;
   amount: number;
   payment_method: 'cash' | 'mobile_money' | 'bank_transfer' | 'check' | 'other';
-  payment_type: 'tuition' | 'registration' | 'exam' | 'transport' | 'canteen' | 'uniform' | 'books' | 'other';
+  payment_type: 'tuition' | 'registration' | 'exam' | 'transport' | 'canteen' | 'uniform' | 'books' | 'other' | 'monthly_tuition';
   payment_period?: string;
   academic_year: string;
   payment_date: string;
@@ -33,7 +33,7 @@ export interface CreatePaymentData {
   student_id: string;
   amount: number;
   payment_method: 'cash' | 'mobile_money' | 'bank_transfer' | 'check' | 'other';
-  payment_type: 'tuition' | 'registration' | 'exam' | 'transport' | 'canteen' | 'uniform' | 'books' | 'other';
+  payment_type: 'tuition' | 'registration' | 'exam' | 'transport' | 'canteen' | 'uniform' | 'books' | 'other' | 'monthly_tuition';
   payment_period?: string;
   payment_date?: string;
   transaction_reference?: string;

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Send, Phone, Mail, MessageSquare, Download, Calendar, Printer } from "lucide-react";
+import { AlertCircle, Send, Phone, Mail, MessageSquare, Download, Calendar, Printer, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,64 +31,105 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import StatCard from "@/components/StatCard";
+import { toast } from "sonner";
 import { useStudents } from "@/hooks/useStudents";
 import { useClasses } from "@/hooks/useClasses";
 import { useSchool } from "@/hooks/useSchool";
+import { usePayments } from "@/hooks/usePayments";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+
+const MONTHS = [
+  { value: 'Janvier', label: 'Janvier' },
+  { value: 'Février', label: 'Février' },
+  { value: 'Mars', label: 'Mars' },
+  { value: 'Avril', label: 'Avril' },
+  { value: 'Mai', label: 'Mai' },
+  { value: 'Juin', label: 'Juin' },
+  { value: 'Juillet', label: 'Juillet' },
+  { value: 'Août', label: 'Août' },
+  { value: 'Septembre', label: 'Septembre' },
+  { value: 'Octobre', label: 'Octobre' },
+  { value: 'Novembre', label: 'Novembre' },
+  { value: 'Décembre', label: 'Décembre' },
+];
 
 const LatePayments = () => {
   const navigate = useNavigate();
   const { students } = useStudents();
   const { classes } = useClasses();
   const { school } = useSchool();
-  const [periodFilter, setPeriodFilter] = useState("all");
-  const [classFilter, setClassFilter] = useState<string>("all");
+  const { payments } = usePayments();
+  const [classFilter, setClassFilter] = useState<string>("");
+  const [monthFilter, setMonthFilter] = useState<string>("");
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [showResults, setShowResults] = useState(false);
 
-  // Calculer les élèves en retard de paiement
+  // Calculer les élèves en retard pour un mois spécifique
   const latePayments = useMemo(() => {
-    return students
-      .filter(student => 
-        student.payment_status === 'pending' || student.payment_status === 'partial'
-      )
-      .map(student => ({
-        id: student.id,
-        student: student.full_name,
-        matricule: student.matricule,
-        class: student.class,
-        payment_status: student.payment_status,
-        parent_name: student.parent_name,
-        parent_phone: student.parent_phone,
-        phone: student.phone,
-        email: student.email,
-      }));
-  }, [students]);
+    if (!showResults || !classFilter || !monthFilter) return [];
 
-  // Filtrer par classe
-  const filteredPayments = useMemo(() => {
-    if (classFilter === "all") return latePayments;
-    return latePayments.filter(payment => payment.class === classFilter);
-  }, [latePayments, classFilter]);
+    // Get students from selected class
+    const classStudents = students.filter(s => 
+      s.class === classFilter && s.status === 'active'
+    );
+
+    // Check which students haven't paid for the selected month
+    const unpaidStudents = classStudents.filter(student => {
+      const studentMonthlyPayments = payments.filter(p => 
+        p.student_id === student.id &&
+        (p.payment_type === 'monthly_tuition' || p.payment_type === 'tuition') &&
+        p.payment_period === monthFilter
+      );
+      
+      return studentMonthlyPayments.length === 0;
+    });
+
+    return unpaidStudents.map(student => ({
+      id: student.id,
+      student: student.full_name,
+      matricule: student.matricule,
+      class: student.class,
+      payment_status: student.payment_status,
+      parent_name: student.parent_name,
+      parent_phone: student.parent_phone,
+      phone: student.phone,
+      email: student.email,
+    }));
+  }, [students, payments, classFilter, monthFilter, showResults]);
+
+  const handleSearch = () => {
+    if (!classFilter) {
+      toast.error("Veuillez sélectionner une classe");
+      return;
+    }
+    if (!monthFilter) {
+      toast.error("Veuillez sélectionner un mois");
+      return;
+    }
+    setShowResults(true);
+    setSelectedStudents([]);
+  };
 
   const stats = [
     { 
-      title: "Total en retard", 
-      value: latePayments.length.toString(), 
+      title: "Élèves non payés", 
+      value: showResults ? latePayments.length.toString() : "-", 
       icon: AlertCircle, 
-      description: "Élèves concernés" 
+      description: monthFilter ? `Mois: ${monthFilter}` : "Sélectionnez un mois" 
     },
     { 
-      title: "Classes concernées", 
-      value: new Set(latePayments.map(p => p.class)).size.toString(), 
-      icon: AlertCircle 
+      title: "Classe sélectionnée", 
+      value: classFilter || "Aucune", 
+      icon: AlertCircle,
+      description: classFilter ? `${students.filter(s => s.class === classFilter && s.status === 'active').length} élèves total` : "Choisir une classe"
     },
     { 
-      title: "Filtre actif", 
-      value: classFilter === "all" ? "Toutes" : "1 classe", 
+      title: "Sélectionnés", 
+      value: selectedStudents.length.toString(), 
       icon: Send, 
-      description: filteredPayments.length + " élèves affichés" 
+      description: "Pour relance groupée" 
     },
   ];
 
@@ -119,10 +160,10 @@ const LatePayments = () => {
   };
 
   const selectAll = () => {
-    if (selectedStudents.length === filteredPayments.length) {
+    if (selectedStudents.length === latePayments.length) {
       setSelectedStudents([]);
     } else {
-      setSelectedStudents(filteredPayments.map(p => p.id));
+      setSelectedStudents(latePayments.map(p => p.id));
     }
   };
 
@@ -182,25 +223,25 @@ const LatePayments = () => {
               Liste des élèves en retard de paiement
             </h2>
             
-            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-3 gap-4 text-sm">
               <div className="bg-white rounded-md p-3 border border-gray-200">
-                <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Filtre</p>
+                <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Classe</p>
                 <p className="font-semibold text-gray-800">
-                  {classFilter === "all" ? "Toutes les classes" : classFilter}
+                  {classFilter || "Non spécifiée"}
                 </p>
               </div>
               
               <div className="bg-white rounded-md p-3 border border-gray-200">
-                <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Date d'édition</p>
+                <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Mois concerné</p>
                 <p className="font-semibold text-gray-800">
-                  {format(new Date(), "dd/MM/yyyy", { locale: fr })}
+                  {monthFilter || "Non spécifié"}
                 </p>
               </div>
               
               <div className="bg-white rounded-md p-3 border border-gray-200">
                 <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Total élèves</p>
                 <p className="font-semibold text-gray-800">
-                  {filteredPayments.length} en retard
+                  {latePayments.length} non payés
                 </p>
               </div>
             </div>
@@ -221,7 +262,7 @@ const LatePayments = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredPayments.map((payment, index) => (
+                {latePayments.map((payment, index) => (
                   <tr 
                     key={payment.id} 
                     className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
@@ -286,9 +327,7 @@ const LatePayments = () => {
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Retards de paiement</h1>
             <p className="text-muted-foreground">
-              {selectedStudents.length > 0 
-                ? `${selectedStudents.length} élève${selectedStudents.length > 1 ? 's' : ''} sélectionné${selectedStudents.length > 1 ? 's' : ''}`
-                : `${filteredPayments.length} élève${filteredPayments.length > 1 ? 's' : ''} en retard`}
+              Recherchez les élèves qui n'ont pas payé pour un mois spécifique
             </p>
           </div>
           <div className="flex gap-2">
@@ -296,7 +335,7 @@ const LatePayments = () => {
               variant="outline" 
               className="gap-2"
               onClick={handlePrint}
-              disabled={filteredPayments.length === 0}
+              disabled={!showResults || latePayments.length === 0}
             >
               <Printer className="h-4 w-4" />
               Imprimer
@@ -318,52 +357,114 @@ const LatePayments = () => {
           ))}
         </div>
 
+        {/* Guide d'utilisation */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-white" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground">Guide des retards de paiement</h3>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Sélectionner une classe :</strong> Choisissez la classe dont vous voulez vérifier les paiements.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Sélectionner un mois :</strong> Choisissez le mois de scolarité à vérifier (ex: Janvier, Février, etc.).
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Rechercher :</strong> Cliquez sur le bouton &quot;Rechercher&quot; pour afficher tous les élèves de cette classe qui n&apos;ont pas encore payé ce mois.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Relance groupée :</strong> Sélectionnez les élèves concernés et envoyez des rappels de paiement par SMS, WhatsApp ou Email.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="shadow-card">
           <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle className="text-foreground">Élèves en retard de paiement</CardTitle>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Select value={classFilter} onValueChange={setClassFilter}>
-                  <SelectTrigger className="w-full sm:w-[220px]">
-                    <SelectValue placeholder="Filtrer par classe" />
+            <CardTitle className="text-foreground">Rechercher les élèves non payés</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label>Classe *</Label>
+                <Select value={classFilter} onValueChange={(value) => {
+                  setClassFilter(value);
+                  setShowResults(false);
+                  setSelectedStudents([]);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner une classe" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Toutes les classes</SelectItem>
-                    {classes.map((classItem) => {
-                      const classLateCount = latePayments.filter(p => p.class === classItem.name).length;
-                      return (
-                        <SelectItem key={classItem.id} value={classItem.name}>
-                          {classItem.name} ({classLateCount})
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                <Select value={periodFilter} onValueChange={setPeriodFilter}>
-                  <SelectTrigger className="w-full sm:w-[200px]">
-                    <SelectValue placeholder="Filtrer par retard" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les retards</SelectItem>
-                    <SelectItem value="critical">Critique (&gt;15j)</SelectItem>
-                    <SelectItem value="warning">Attention (7-15j)</SelectItem>
-                    <SelectItem value="recent">Récent (&lt;7j)</SelectItem>
+                    {classes.map((classItem) => (
+                      <SelectItem key={classItem.id} value={classItem.name}>
+                        {classItem.name} - {classItem.level}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-2">
+                <Label>Mois concerné *</Label>
+                <Select value={monthFilter} onValueChange={(value) => {
+                  setMonthFilter(value);
+                  setShowResults(false);
+                  setSelectedStudents([]);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un mois" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTHS.map((month) => (
+                      <SelectItem key={month.value} value={month.value}>
+                        {month.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-end">
+                <Button 
+                  className="w-full bg-primary hover:bg-primary/90 gap-2"
+                  onClick={handleSearch}
+                  disabled={!classFilter || !monthFilter}
+                >
+                  <Search className="h-4 w-4" />
+                  Rechercher
+                </Button>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            {filteredPayments.length === 0 ? (
+
+            {classFilter && monthFilter && showResults && (
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border">
+                <p className="text-sm font-medium">
+                  Résultats : <span className="text-primary font-bold">{latePayments.length}</span> élève{latePayments.length > 1 ? 's' : ''} de la classe <span className="font-bold">{classFilter}</span> {latePayments.length > 1 ? 'n\'ont' : 'n\'a'} pas payé le mois de <span className="font-bold">{monthFilter}</span>
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {showResults && (
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="text-foreground">Élèves non payés pour {monthFilter}</CardTitle>
+            </CardHeader>
+            <CardContent>
+            {latePayments.length === 0 ? (
               <div className="text-center py-12">
-                <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-2">
-                  {classFilter === "all" 
-                    ? "Aucun élève en retard de paiement" 
-                    : `Aucun élève en retard dans la classe ${classFilter}`}
+                <AlertCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                <p className="text-foreground font-semibold mb-2">
+                  Tous les élèves de {classFilter} ont payé le mois de {monthFilter} ! 🎉
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Tous les paiements sont à jour ! 🎉
+                  Aucun retard de paiement détecté pour cette période
                 </p>
               </div>
             ) : (
@@ -373,7 +474,7 @@ const LatePayments = () => {
                     <TableRow className="bg-muted/50">
                       <TableHead className="w-12">
                         <Checkbox 
-                          checked={selectedStudents.length === filteredPayments.length && filteredPayments.length > 0}
+                          checked={selectedStudents.length === latePayments.length && latePayments.length > 0}
                           onCheckedChange={selectAll}
                         />
                       </TableHead>
@@ -386,7 +487,7 @@ const LatePayments = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPayments.map((payment) => (
+                    {latePayments.map((payment) => (
                       <TableRow key={payment.id} className="hover:bg-muted/50 transition-colors">
                         <TableCell>
                           <Checkbox
@@ -434,8 +535,9 @@ const LatePayments = () => {
                 </Table>
               </div>
             )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Configuration des relances */}
         <Card className="shadow-card bg-gradient-soft border-primary/20">
