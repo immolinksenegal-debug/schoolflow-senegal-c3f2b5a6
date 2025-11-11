@@ -107,14 +107,22 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
     },
   });
 
-  // Recalculer lors de l'édition si classData change
+  // Reset du formulaire quand classData change (pour l'édition)
   React.useEffect(() => {
     if (classData) {
-      const monthlyTuition = classData.monthly_tuition || 0;
-      const studyMonths = classData.study_months || 9;
-      const registrationFee = classData.registration_fee || 0;
-      const calculated = (monthlyTuition * studyMonths) + registrationFee;
-      form.setValue("annual_tuition", calculated);
+      form.reset({
+        name: classData.name,
+        level: classData.level,
+        academic_year: classData.academic_year,
+        capacity: classData.capacity,
+        teacher_name: classData.teacher_name || "",
+        room_number: classData.room_number || "",
+        schedule: classData.schedule || "",
+        registration_fee: classData.registration_fee || 0,
+        monthly_tuition: classData.monthly_tuition || 0,
+        study_months: classData.study_months || 9,
+        annual_tuition: classData.annual_tuition || 0,
+      });
     }
   }, [classData, form]);
 
@@ -165,7 +173,7 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Niveau *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un niveau" />
@@ -191,7 +199,7 @@ export const ClassForm = ({ open, onOpenChange, onSubmit, classData, loading }: 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Année académique *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner une année" />
