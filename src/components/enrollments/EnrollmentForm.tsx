@@ -185,6 +185,7 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
       onSubmit({
         enrollment_type,
         ...enrollmentData,
+        use_existing_parent: useExistingParent, // Indiquer si on utilise un parent existant
         student_data: {
           full_name,
           date_of_birth,
