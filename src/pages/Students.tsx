@@ -567,8 +567,10 @@ const Students = () => {
                 <DialogTitle>Profil de l'élève</DialogTitle>
                 <Button
                   onClick={() => {
-                    setPayingStudent(selectedStudent);
-                    setSelectedStudent(null);
+                    if (selectedStudent) {
+                      setPayingStudent(selectedStudent);
+                      setSelectedStudent(null);
+                    }
                   }}
                   className="bg-primary hover:bg-primary/90 gap-2"
                   size="sm"
@@ -749,8 +751,10 @@ const Students = () => {
                       <p className="text-sm text-muted-foreground">Aucun paiement enregistré</p>
                       <Button
                         onClick={() => {
-                          setPayingStudent(selectedStudent);
-                          setSelectedStudent(null);
+                          if (selectedStudent) {
+                            setPayingStudent(selectedStudent);
+                            setSelectedStudent(null);
+                          }
                         }}
                         className="mt-3 bg-primary hover:bg-primary/90 gap-2"
                         size="sm"
