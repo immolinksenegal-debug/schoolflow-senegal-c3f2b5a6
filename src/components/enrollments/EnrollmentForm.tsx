@@ -13,6 +13,8 @@ import { useStudents } from "@/hooks/useStudents";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const enrollmentSchema = z.object({
   enrollment_type: z.enum(['new', 're-enrollment']),
@@ -83,6 +85,7 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
   const [searchParentPhone, setSearchParentPhone] = useState("");
   const [foundParents, setFoundParents] = useState<ParentInfo[]>([]);
   const [showParentSelector, setShowParentSelector] = useState(false);
+  const [hasExistingParent, setHasExistingParent] = useState<string>("");
   
   const form = useForm<EnrollmentFormData>({
     resolver: zodResolver(enrollmentSchema),
@@ -152,6 +155,22 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
         p.parent_phone.includes(searchParentPhone)
       );
       setFoundParents(matches);
+    }
+  };
+
+  const handleHasExistingParentChange = (value: string) => {
+    setHasExistingParent(value);
+    if (value === "no") {
+      // Reset parent selection if user says parent doesn't exist
+      form.setValue('use_existing_parent', false);
+      form.setValue('parent_name', '');
+      form.setValue('parent_phone', '');
+      form.setValue('parent_email', '');
+      setShowParentSelector(false);
+      setFoundParents([]);
+      setSearchParentPhone("");
+    } else if (value === "yes") {
+      setShowParentSelector(true);
     }
   };
 
@@ -333,30 +352,38 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
                 />
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="space-y-3">
                     <h4 className="text-sm font-medium">Informations parent/tuteur</h4>
-                    <div className="flex gap-2">
-                      {useExistingParent && (
-                        <Badge variant="secondary" className="gap-1">
-                          <Search className="h-3 w-3" />
-                          Parent existant
-                        </Badge>
-                      )}
-                      {!useExistingParent && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowParentSelector(!showParentSelector)}
-                        >
-                          <Search className="h-4 w-4 mr-2" />
-                          {showParentSelector ? "Annuler" : "Sélectionner parent existant"}
-                        </Button>
-                      )}
+                    
+                    <div className="p-4 bg-muted/30 rounded-lg border border-border space-y-3">
+                      <Label className="text-sm font-medium">Le parent/tuteur est-il déjà inscrit dans l&apos;établissement ?</Label>
+                      <RadioGroup value={hasExistingParent} onValueChange={handleHasExistingParentChange}>
+                        <div className="flex items-center space-x-6">
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="yes" id="parent-yes" />
+                            <Label htmlFor="parent-yes" className="cursor-pointer font-normal">
+                              Oui, rechercher un parent existant
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="no" id="parent-no" />
+                            <Label htmlFor="parent-no" className="cursor-pointer font-normal">
+                              Non, nouveau parent
+                            </Label>
+                          </div>
+                        </div>
+                      </RadioGroup>
                     </div>
+
+                    {useExistingParent && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Search className="h-3 w-3" />
+                        Parent existant sélectionné
+                      </Badge>
+                    )}
                   </div>
 
-                  {showParentSelector && !useExistingParent && (
+                  {hasExistingParent === "yes" && showParentSelector && !useExistingParent && (
                     <div className="p-4 bg-muted/50 rounded-lg border border-border space-y-3">
                       <div className="flex gap-2">
                         <Input
@@ -407,87 +434,64 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
                     </div>
                   )}
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="parent_phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Téléphone parent *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="77 987 65 43" 
-                              {...field}
-                              disabled={useExistingParent}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                          
-                          {foundParents.length > 0 && !useExistingParent && (
-                            <div className="mt-2 p-3 bg-muted/50 rounded-lg border border-border">
-                              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                                <AlertCircle className="h-3 w-3" />
-                                Parent(s) existant(s) trouvé(s)
-                              </p>
-                              <div className="space-y-2">
-                                {foundParents.map((parent, idx) => (
-                                  <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => handleSelectExistingParent(parent)}
-                                    className="w-full text-left p-2 text-xs bg-background hover:bg-accent rounded border border-border transition-colors"
-                                  >
-                                    <div className="font-medium">{parent.parent_name}</div>
-                                    <div className="text-muted-foreground">{parent.parent_phone}</div>
-                                    <div className="text-muted-foreground">
-                                      {parent.student_count} élève{parent.student_count > 1 ? 's' : ''} déjà inscrit{parent.student_count > 1 ? 's' : ''}
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </FormItem>
-                      )}
-                    />
+                  {(hasExistingParent === "no" || useExistingParent) && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="parent_phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Téléphone parent *</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="77 987 65 43" 
+                                {...field}
+                                disabled={useExistingParent}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="parent_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nom du parent/tuteur *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="M. ou Mme..." 
-                              {...field}
-                              disabled={useExistingParent}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name="parent_name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nom du parent/tuteur *</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="M. ou Mme..." 
+                                {...field}
+                                disabled={useExistingParent}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="parent_email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email parent</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="email" 
-                              placeholder="parent@email.com" 
-                              {...field}
-                              disabled={useExistingParent}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                      <FormField
+                        control={form.control}
+                        name="parent_email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email parent</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="email" 
+                                placeholder="parent@email.com" 
+                                {...field}
+                                disabled={useExistingParent}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
 
                   {useExistingParent && (
                     <Button
@@ -499,6 +503,7 @@ export const EnrollmentForm = ({ open, onOpenChange, onSubmit, loading }: Enroll
                         form.setValue('parent_name', '');
                         form.setValue('parent_phone', '');
                         form.setValue('parent_email', '');
+                        setHasExistingParent("no");
                       }}
                     >
                       Saisir un nouveau parent
