@@ -209,6 +209,32 @@ const Enrollments = () => {
           </div>
         </div>
 
+        {/* Guide d'utilisation */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                <FileText className="h-5 w-5 text-white" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground">Comment gérer les inscriptions ?</h3>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Nouvelles inscriptions :</strong> Pour les nouveaux élèves, remplissez toutes les informations (élève + parent). Le montant d&apos;inscription s&apos;affiche automatiquement selon la classe choisie.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Réinscriptions :</strong> Pour les anciens élèves, sélectionnez simplement l&apos;élève et sa nouvelle classe.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Modifier une inscription :</strong> Cliquez sur le bouton "Modifier" (visible uniquement pour les inscriptions EN ATTENTE).
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Approuver :</strong> Une fois l&apos;inscription validée, l&apos;élève est automatiquement créé dans le système et un reçu est généré.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid gap-6 md:grid-cols-3">
           {stats.map((stat) => (
             <StatCard key={stat.title} {...stat} />

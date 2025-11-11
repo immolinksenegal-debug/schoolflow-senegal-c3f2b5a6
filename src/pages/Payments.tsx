@@ -186,6 +186,32 @@ const Payments = () => {
           </div>
         </div>
 
+        {/* Guide d'utilisation */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                <DollarSign className="h-5 w-5 text-white" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground">Guide des paiements</h3>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Enregistrer un paiement :</strong> Sélectionnez l&apos;élève, le type de paiement, le montant et la méthode (Espèces, Mobile Money, Virement, etc.).
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Paiements mensuels :</strong> Le système empêche automatiquement le paiement d&apos;un mois déjà payé pour éviter les doublons.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Reçus automatiques :</strong> Après chaque paiement, un reçu officiel est généré automatiquement et peut être imprimé.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Filtres :</strong> Utilisez les filtres (méthode, type) et la recherche pour retrouver rapidement un paiement.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid gap-6 md:grid-cols-3">
           {statsData.map((stat) => (
             <StatCard key={stat.title} {...stat} />

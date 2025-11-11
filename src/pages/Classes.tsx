@@ -248,6 +248,32 @@ const Classes = () => {
           </Button>
         </div>
 
+        {/* Guide d'utilisation */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                <BookOpen className="h-5 w-5 text-white" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground">Fonctionnement de la gestion des classes</h3>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Créer une classe :</strong> Définissez le nom, le niveau, la capacité et les frais (inscription + mensualité × mois d&apos;étude).
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Scolarité annuelle :</strong> Elle se calcule automatiquement selon la formule : (Mensualité × Nombre de mois) + Frais d&apos;inscription.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Modifier une classe :</strong> Les champs sont pré-remplis automatiquement. Modifiez ce que vous voulez puis enregistrez.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Classes obligatoires :</strong> Vous devez créer au moins une classe avant de pouvoir enregistrer des inscriptions ou ajouter des élèves.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Global Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card className="shadow-card">

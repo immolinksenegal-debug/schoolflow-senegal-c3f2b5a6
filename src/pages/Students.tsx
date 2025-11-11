@@ -276,6 +276,32 @@ const Students = () => {
             </div>
           </div>
 
+          {/* Guide d'utilisation */}
+          <Card className="bg-primary/5 border-primary/20 no-print">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-white" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-foreground">Comment utiliser cette page ?</h3>
+                  <p className="text-sm text-muted-foreground">
+                    • <strong>Consulter les élèves :</strong> Utilisez les filtres (classe, statut de paiement) et la barre de recherche pour trouver rapidement un élève.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    • <strong>Payer :</strong> Cliquez sur le bouton "Payer" à côté du nom de l&apos;élève pour enregistrer un paiement rapidement.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    • <strong>Imprimer une liste :</strong> Sélectionnez une classe, puis cliquez sur "Imprimer la liste" pour obtenir un document imprimable.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    • <strong>Note importante :</strong> Les élèves sont créés automatiquement lors de l&apos;approbation des inscriptions. Vous n&apos;avez normalement pas besoin d&apos;ajouter un élève manuellement.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
 
         {/* Print Header - Only visible when printing */}
         <div className="print-area hidden print:block mb-8">

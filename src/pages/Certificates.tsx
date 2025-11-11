@@ -124,6 +124,29 @@ const Certificates = () => {
           </div>
         </div>
 
+        {/* Guide d'utilisation */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                <FileText className="h-5 w-5 text-white" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground">Comment générer les certificats ?</h3>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Types de documents :</strong> Certificat de scolarité, attestation d&apos;inscription, reçu de paiement, attestation de présence, certificat de bonne conduite.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Génération rapide :</strong> Cliquez sur le type de document souhaité, sélectionnez l&apos;élève, remplissez les informations et générez le PDF.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  • <strong>Documents officiels :</strong> Tous les documents sont personnalisés avec le logo et les informations de votre établissement.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid gap-6 md:grid-cols-3">
           {statsData.map((stat) => (
             <StatCard key={stat.title} {...stat} />
