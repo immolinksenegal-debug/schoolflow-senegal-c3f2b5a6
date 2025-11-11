@@ -573,9 +573,22 @@ const Students = () => {
 
         {/* Dialog pour voir les détails */}
         <Dialog open={!!selectedStudent && !editingStudent} onOpenChange={() => setSelectedStudent(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Profil de l'élève</DialogTitle>
+              <div className="flex items-center justify-between">
+                <DialogTitle>Profil de l'élève</DialogTitle>
+                <Button
+                  onClick={() => {
+                    setPayingStudent(selectedStudent);
+                    setSelectedStudent(null);
+                  }}
+                  className="bg-primary hover:bg-primary/90 gap-2"
+                  size="sm"
+                >
+                  <Wallet className="h-4 w-4" />
+                  Effectuer un paiement
+                </Button>
+              </div>
             </DialogHeader>
             {selectedStudent && (
               <div className="space-y-6 py-4">
@@ -696,21 +709,67 @@ const Students = () => {
                         Historique des paiements ({studentFinancialInfo.payments.length})
                       </h5>
                       <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {studentFinancialInfo.payments.map((payment) => (
-                          <div key={payment.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg text-sm">
-                            <div className="flex items-center gap-3">
-                              <CreditCard className="h-4 w-4 text-muted-foreground" />
-                              <div>
-                                <p className="font-medium">{payment.receipt_number}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(payment.payment_date).toLocaleDateString('fr-FR')} • {payment.payment_period || '-'}
-                                </p>
+                        {studentFinancialInfo.payments
+                          .sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime())
+                          .map((payment) => {
+                            const paymentTypeLabels: Record<string, string> = {
+                              monthly_tuition: 'Scolarité mensuelle',
+                              tuition: 'Scolarité',
+                              registration: 'Inscription',
+                              exam: 'Examens',
+                              transport: 'Transport',
+                              canteen: 'Cantine',
+                              uniform: 'Uniforme',
+                              books: 'Manuels',
+                              other: 'Autre'
+                            };
+                            return (
+                              <div key={payment.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg text-sm hover:bg-muted/50 transition-colors">
+                                <div className="flex items-center gap-3 flex-1">
+                                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <CreditCard className="h-5 w-5 text-primary" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <p className="font-medium">{payment.receipt_number}</p>
+                                      <Badge variant="outline" className="text-xs">
+                                        {paymentTypeLabels[payment.payment_type] || payment.payment_type}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                      {new Date(payment.payment_date).toLocaleDateString('fr-FR', { 
+                                        day: '2-digit', 
+                                        month: 'long', 
+                                        year: 'numeric' 
+                                      })}
+                                      {payment.payment_period && ` • ${payment.payment_period}`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <p className="font-semibold text-green-600">{Number(payment.amount).toLocaleString()} FCFA</p>
                               </div>
-                            </div>
-                            <p className="font-semibold text-green-600">{Number(payment.amount).toLocaleString()} FCFA</p>
-                          </div>
-                        ))}
+                            );
+                          })}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Message si aucun paiement */}
+                  {studentFinancialInfo && studentFinancialInfo.payments.length === 0 && (
+                    <div className="mt-4 p-4 bg-muted/30 rounded-lg text-center">
+                      <CreditCard className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">Aucun paiement enregistré</p>
+                      <Button
+                        onClick={() => {
+                          setPayingStudent(selectedStudent);
+                          setSelectedStudent(null);
+                        }}
+                        className="mt-3 bg-primary hover:bg-primary/90 gap-2"
+                        size="sm"
+                      >
+                        <Wallet className="h-4 w-4" />
+                        Enregistrer le premier paiement
+                      </Button>
                     </div>
                   )}
                 </div>
