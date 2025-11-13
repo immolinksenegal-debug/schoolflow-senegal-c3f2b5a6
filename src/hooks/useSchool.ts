@@ -20,6 +20,7 @@ export interface UpdateSchoolData {
   phone?: string;
   email?: string;
   logo_url?: string;
+  schoolId?: string;
 }
 
 export const useSchool = () => {
@@ -58,33 +59,42 @@ export const useSchool = () => {
   });
 
   const updateSchool = useMutation({
-    mutationFn: async (updates: UpdateSchoolData) => {
+    mutationFn: async (updates: UpdateSchoolData & { schoolId?: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user?.id) {
         throw new Error("Non authentifié");
       }
 
-      // Get school_id from profile
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("school_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      let schoolId = updates.schoolId;
 
-      if (profileError) throw profileError;
-      
-      if (!profile?.school_id) {
-        throw new Error("Aucune école associée à votre profil");
+      // If no schoolId provided, try to get from profile
+      if (!schoolId) {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("school_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+        
+        if (!profile?.school_id) {
+          throw new Error("Aucune école associée à votre profil");
+        }
+        
+        schoolId = profile.school_id;
       }
+
+      // Remove schoolId from updates before sending to database
+      const { schoolId: _, ...schoolUpdates } = updates;
 
       const { data, error } = await supabase
         .from("schools")
         .update({
-          ...updates,
+          ...schoolUpdates,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", profile.school_id)
+        .eq("id", schoolId)
         .select()
         .single();
 
