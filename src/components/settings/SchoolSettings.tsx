@@ -14,8 +14,17 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSchool } from "@/hooks/useSchool";
+import { useSchools } from "@/hooks/useSchools";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Building2, Loader2, X } from "lucide-react";
@@ -31,25 +40,40 @@ type SchoolFormData = z.infer<typeof schoolSchema>;
 
 export const SchoolSettings = () => {
   const { school, isLoading, updateSchool } = useSchool();
+  const { schools } = useSchools();
+  const { isSuperAdmin } = useUserRole();
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  // For super_admin, use selected school; for others, use their school
+  const currentSchool = isSuperAdmin && selectedSchoolId
+    ? schools.find(s => s.id === selectedSchoolId)
+    : school;
+
   const form = useForm<SchoolFormData>({
     resolver: zodResolver(schoolSchema),
     values: {
-      name: school?.name || "",
-      address: school?.address || "",
-      phone: school?.phone || "",
-      email: school?.email || "",
+      name: currentSchool?.name || "",
+      address: currentSchool?.address || "",
+      phone: currentSchool?.phone || "",
+      email: currentSchool?.email || "",
     },
   });
 
   useEffect(() => {
-    if (school?.logo_url) {
-      setLogoPreview(school.logo_url);
+    if (currentSchool?.logo_url) {
+      setLogoPreview(currentSchool.logo_url);
     }
-  }, [school]);
+  }, [currentSchool]);
+
+  useEffect(() => {
+    // Initialize selected school for super_admin
+    if (isSuperAdmin && !selectedSchoolId && school?.id) {
+      setSelectedSchoolId(school.id);
+    }
+  }, [isSuperAdmin, selectedSchoolId, school]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,22 +93,22 @@ export const SchoolSettings = () => {
 
   const handleRemoveLogo = () => {
     setLogoFile(null);
-    setLogoPreview(school?.logo_url || null);
+    setLogoPreview(currentSchool?.logo_url || null);
   };
 
   const onSubmit = async (data: SchoolFormData) => {
     try {
       setUploading(true);
-      let logoUrl = school?.logo_url;
+      let logoUrl = currentSchool?.logo_url;
 
       // Upload new logo if selected
       if (logoFile) {
         const fileExt = logoFile.name.split(".").pop();
-        const fileName = `${school?.id}-${Date.now()}.${fileExt}`;
+        const fileName = `${currentSchool?.id}-${Date.now()}.${fileExt}`;
         
         // Delete old logo if exists
-        if (school?.logo_url) {
-          const oldFileName = school.logo_url.split('/').pop();
+        if (currentSchool?.logo_url) {
+          const oldFileName = currentSchool.logo_url.split('/').pop();
           if (oldFileName) {
             await supabase.storage
               .from("school-logos")
@@ -112,13 +136,14 @@ export const SchoolSettings = () => {
         setLogoFile(null);
       }
 
-      // Update school with all data
+      // Update school with all data (pass schoolId for super_admin)
       await updateSchool.mutateAsync({
         name: data.name,
         address: data.address || null,
         phone: data.phone || null,
         email: data.email || null,
         logo_url: logoUrl || null,
+        schoolId: isSuperAdmin ? selectedSchoolId || undefined : undefined,
       });
 
       setLogoPreview(logoUrl || null);
@@ -151,6 +176,28 @@ export const SchoolSettings = () => {
           Gérez les informations générales de votre établissement
         </CardDescription>
       </CardHeader>
+      {isSuperAdmin && (
+        <CardContent className="border-b pb-6">
+          <div className="space-y-2">
+            <Label htmlFor="school-select">Sélectionner une école à modifier</Label>
+            <Select
+              value={selectedSchoolId || ""}
+              onValueChange={setSelectedSchoolId}
+            >
+              <SelectTrigger id="school-select">
+                <SelectValue placeholder="Choisir une école..." />
+              </SelectTrigger>
+              <SelectContent>
+                {schools.map((school) => (
+                  <SelectItem key={school.id} value={school.id}>
+                    {school.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      )}
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
