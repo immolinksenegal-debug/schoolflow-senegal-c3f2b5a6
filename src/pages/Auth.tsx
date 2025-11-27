@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogIn, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { LogIn, ArrowLeft, Eye, EyeOff, Shield } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import eduKashLogo from "@/assets/edukash-logo.png";
 
 const Auth = () => {
@@ -145,6 +146,19 @@ const Auth = () => {
                   <li>• <strong>Enseignant</strong> - Gestion des classes et étudiants</li>
                   <li>• <strong>Étudiant</strong> - Consultation de vos informations</li>
                 </ul>
+              </div>
+
+              <div className="flex items-start gap-2 p-3 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/20">
+                <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <div className="space-y-1 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-primary">Information Super Admin</p>
+                    <Badge variant="secondary" className="text-xs">Auto-redirection</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Les comptes Super Admin sont automatiquement redirigés vers le panneau d'administration après connexion.
+                  </p>
+                </div>
               </div>
 
               <form onSubmit={handleSignIn} className="space-y-4">
